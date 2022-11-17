@@ -15,11 +15,14 @@ rate = rospy.Rate(2)
 location = "0"
 id = "0000"
 tracked = "team11, team11" + ","+ location + "," + id
+pub.publish(tracked)
+rate.sleep()
 
 while not rospy.is_shutdown():
-   pub.publish(tracked)
    rate.sleep()
 
 location = "-1"
 tracked = "team11, team11" + ","+ location + "," + id
 pub.publish(tracked)
+rate.sleep()
+
