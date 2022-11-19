@@ -27,7 +27,7 @@ while not rospy.is_shutdown():
       rate.sleep()
       started = True
       location = "-1"
-      
+
    try:
       rospy.spin()
    except KeyboardInterrupt:
@@ -35,9 +35,7 @@ while not rospy.is_shutdown():
       pub.publish(tracked)
       rate.sleep()
 
-# class license_plate:
-#    RUN_TIME = 240
-   
+# class license_plate:   
 #    def __init__(self):
 #       # All are objects
 #       self.license_pub = rospy.Publisher("license_plate", String, queue_size=1)
