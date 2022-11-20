@@ -1,15 +1,20 @@
-<!-- <launch>
-   <node pkg="my_controller"
+<launch>
+   <!-- My Package launch file -->
+   <!-- <node pkg="my_controller"
          type="SIFT.py"
          name="SIFT" 
          output="screen">
-   </node>
-</launch> -->
+   </node> -->
 
-<launch>
    <node pkg="my_controller"
-         type="sift_find_keypoints.py"
-         name="sift_find_keypoints" 
+         type="find_keypoints.py"
+         name="find_keypoints" 
          output="screen">
    </node>
+   
+   <!-- <node pkg="my_controller"
+         type="feature_mapping.py"
+         name="feature_mapping" 
+         output="screen">
+   </node> -->
 </launch>

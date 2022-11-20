@@ -5,12 +5,13 @@ import cv2 as cv2
 import os
 import matplotlib.pyplot as plt
 
-path = '/home/fizzer/ros_ws/src/my_controller/node/p_image.jpg/'
 # https://docs.opencv.org/3.4/da/df5/tutorial_py_sift_intro.html
-if not os.path.exists(path):
-    print("False")
 
-img = cv2.imread(path, 1)
+# https://www.reddit.com/r/learnpython/comments/szmoq9/visual_code_opencv_cant_openread_file_problem/
+file_name = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
+assert os.path.exists(file_name)
+
+img = cv2.imread(file_name, 1)
 gray= cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
 sift = cv2.SIFT_create()
