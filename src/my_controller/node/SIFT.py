@@ -5,6 +5,7 @@ import cv2
 import sys
 import rospy
 import numpy as np
+from silx.image import sift as s
 import roslib
 import os
 from std_msgs.msg import String
@@ -26,11 +27,21 @@ class image_converter:
         self.image = None
         # self.image_pub = rospy.Publisher("/R1/pi_camera/image_raw/theora", Image, queue_size = 10)
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.sift)
+        self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
 
+    def count(self):
+      # folder path
+      dir_path =  r'E:/home/fizzer/ros_ws/src/my_controller/node/plate_img'
+      count = 0
+      # Iterate directory
+      for path in os.scandir(dir_path):
+          if path.is_file():
+              count += 1
+      print(count)
+      return str(count)
 
-    def sift(self,data):
+    def callback(self,data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
@@ -46,7 +57,7 @@ class image_converter:
 
         # Initiate SIFT detector
         sift = cv2.SIFT_create()
-        # find the keypoints and descriptors with SIFT
+        # Gets keypoints and descriptors of key frame image
         kp1, des1 = sift.detectAndCompute(img1,None)
         kp2, des2 = sift.detectAndCompute(img2,None)
         FLANN_INDEX_KDTREE = 1
@@ -56,11 +67,19 @@ class image_converter:
         matches = flann.knnMatch(des1,des2,k=2)
         # store all the good matches as per Lowe's ratio test.
         good = []
+        
         for m,n in matches:
             if m.distance < 0.7*n.distance:
                 good.append(m)
 
         if len(good)>MIN_MATCH_COUNT:
+            path = 'D:/home/fizzer/ros_ws/src/my_controller/node/plate_img/'
+            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_1.bmp', img2)
+            print("Image written to file-system : ",status)
+            # cv2.imwrite(os.path.join(path , 'waka.bmp'), img2)
+            # cv2.waitKey(0)  
+            print("Match found, count is {} images".format(1))
+
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
@@ -70,11 +89,9 @@ class image_converter:
             dst = cv2.perspectiveTransform(pts,M)
             img2 = cv2.polylines(img2,[np.int32(dst)],True,255,3, cv2.LINE_AA)
 
-            draw_params = dict(matchColor = (0,255,0), # draw matches in green color
-                  singlePointColor = None,
-                  matchesMask = matchesMask, # draw only inliers
-                  flags = 2)
-            img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
+            # sa = s.LinearAlign(img1)
+            # plt.imshow(sa.align(img2))
+
         else:
             print( "Not enough matches are found - {}/{}".format(len(good), MIN_MATCH_COUNT) )
             matchesMask = None
