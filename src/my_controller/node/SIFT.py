@@ -49,7 +49,7 @@ class image_converter:
 
   # Source: stackoverflow.com/questions/34232632/
   def SLOT_query_camera(self, cv_img):
-    # Feature matching
+    # Feature match
     index_params = dict(algorithm=0, trees=5)
     search_params = dict()
 
