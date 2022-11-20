@@ -1,7 +1,15 @@
-<launch>
+<!-- <launch>
    <node pkg="my_controller"
          type="SIFT.py"
          name="SIFT" 
+         output="screen">
+   </node>
+</launch> -->
+
+<launch>
+   <node pkg="my_controller"
+         type="sift_find_keypoints.py"
+         name="sift_find_keypoints" 
          output="screen">
    </node>
 </launch>
