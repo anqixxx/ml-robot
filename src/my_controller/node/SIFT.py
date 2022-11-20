@@ -29,6 +29,7 @@ class image_converter:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
+        self.i = 1
 
     def count(self):
       # folder path
@@ -74,11 +75,12 @@ class image_converter:
 
         if len(good)>MIN_MATCH_COUNT:
             path = 'D:/home/fizzer/ros_ws/src/my_controller/node/plate_img/'
-            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_1.bmp', img2)
+            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_{}.bmp'.format(self.i), img2)
             print("Image written to file-system : ",status)
             # cv2.imwrite(os.path.join(path , 'waka.bmp'), img2)
             # cv2.waitKey(0)  
-            print("Match found, count is {} images".format(1))
+            print("Match found, count is {} images".format(self.i))
+            self.i = self.i+1
 
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
