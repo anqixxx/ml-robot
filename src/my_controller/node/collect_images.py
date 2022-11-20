@@ -22,7 +22,7 @@ class image_converter:
     def __init__(self):
         # Can I create a new thing to publish to?
         self.image = None
-        # self.image_pub = rospy.Publisher("/R1/pi_camera/image_raw/theora", Image, queue_size = 10)
+        self.image_pub = rospy.Publisher("/R1/pi_camera/image_raw/theora", Image, queue_size = 10)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.sift)
 
@@ -39,7 +39,6 @@ class image_converter:
         cv2.imshow("img3", gray)
 
         self.image = gray
-
 
         
 ## The main function for running the image converter
