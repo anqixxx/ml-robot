@@ -1,8 +1,8 @@
 <launch>
    <!-- My Package launch file -->
    <node pkg="my_controller"
-         type="move.py"
-         name="move_robot" 
+         type="PID.py"
+         name="PID" 
          output="screen">
    </node>
 </launch>
