@@ -35,6 +35,7 @@ while not rospy.is_shutdown():
       pub.publish(tracked)
       rate.sleep()
 
+
 # class license_plate:   
 #    def __init__(self):
 #       # All are objects

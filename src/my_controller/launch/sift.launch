@@ -1,0 +1,7 @@
+<launch>
+   <node pkg="my_controller"
+         type="SIFT.py"
+         name="SIFT" 
+         output="screen">
+   </node>
+</launch>
