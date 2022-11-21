@@ -29,7 +29,7 @@ class image_converter:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
-        self.i = 1
+        self.i = 158
 
     def count(self):
       # folder path
@@ -98,12 +98,13 @@ class image_converter:
             print( "Not enough matches are found - {}/{}".format(len(good), MIN_MATCH_COUNT) )
             matchesMask = None
         
-        draw_params = dict(matchColor = (0,255,0), # draw matches in green color
-                   singlePointColor = None,
-                   matchesMask = matchesMask, # draw only inliers
-                   flags = 2)
-        img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
-        plt.imshow(img3, 'gray'),plt.show()
+        # if len(good)> 1:
+        #     draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+        #             singlePointColor = None,
+        #             matchesMask = matchesMask, # draw only inliers
+        #             flags = 2)
+        #     img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
+        #     plt.imshow(img3, 'gray'),plt.show()
 
         
 ## The main function for running the image converter
