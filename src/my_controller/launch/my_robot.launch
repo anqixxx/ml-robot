@@ -5,6 +5,12 @@
          name="PID" 
          output="screen">
    </node>
+   
+   <!-- <node pkg="my_controller"
+         type="score_interface.py"
+         name="score_interface" 
+         output="screen">
+   </node> -->
 
    <!-- <node pkg="my_controller"
          type="score_interface.py"

@@ -29,18 +29,19 @@ class image_converter:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
-        self.i = 414
+        self.i = 415
 
     def count(self):
-      # folder path
-      dir_path =  r'E:/home/fizzer/ros_ws/src/my_controller/node/plate_img'
-      count = 0
-      # Iterate directory
-      for path in os.scandir(dir_path):
-          if path.is_file():
-              count += 1
-      print(count)
-      return str(count)
+        # folder path
+        dir_path = '/home/fizzer/ros_ws/src/my_controller/node/plate_img/'
+        count = 0
+        # Iterate directory
+        for path in os.scandir(dir_path):
+            if path.is_file():
+                count += 1
+        print("Count is {}".format(count))
+        return(count+1)
+
 
     def callback(self,data):
         try:
@@ -74,17 +75,18 @@ class image_converter:
                 good.append(m)
 
         if len(good)>MIN_MATCH_COUNT:
-            path = 'D:/home/fizzer/ros_ws/src/my_controller/node/plate_img/'
-            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_{}.bmp'.format(self.i), img2)
+            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_{}.bmp'.format(self.count()), img2)
             print("Image written to file-system : ",status)
             # cv2.imwrite(os.path.join(path , 'waka.bmp'), img2)
             # cv2.waitKey(0)  
-            print("Match found, count is {} images".format(self.i))
+            print("Match found, count is {} images".format(self.count()))
             self.i = self.i+1
 
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+            print(M)
+            # Take matrix (M) and find the matrix inverse and apply to the image
             matchesMask = mask.ravel().tolist()
             h,w = img1.shape
             pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)

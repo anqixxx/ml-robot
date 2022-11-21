@@ -5,6 +5,12 @@
          name="SIFT" 
          output="screen">
    </node>
+   
+   <!-- <node pkg="my_controller"
+         type="count_images.py"
+         name="count_images" 
+         output="screen">
+   </node> -->
 
    <!-- <node pkg="my_controller"
          type="find_keypoints.py"
