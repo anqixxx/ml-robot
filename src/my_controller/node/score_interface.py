@@ -5,6 +5,7 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 import cv2
 import sys
+import time
 
 # Messages to the publisher must be in the form: 
 #     str('TeamRed,multi21,4,XR58')
@@ -13,27 +14,18 @@ import sys
 
 rospy.init_node('topic_publisher')
 pub = rospy.Publisher("license_plate", String, queue_size=1)
-rate = rospy.Rate(2)
+time.sleep(1)
 
-location = "0"
-tracked = "team11, team11,"+ location + ",0000"
-started = False
+rate = rospy.Rate(1)
 
-rate.sleep()
+pub.publish("team11, team11,0,0000")
+print("Timer started at {} for Team 11".format(time.time))
+time.sleep(10)
 
-while not rospy.is_shutdown():
-   if not started:
-      pub.publish(tracked)
-      rate.sleep()
-      started = True
-      location = "-1"
-
-   try:
-      rospy.spin()
-   except KeyboardInterrupt:
-      tracked = "team11, team11,"+ location + ",0000"
-      pub.publish(tracked)
-      rate.sleep()
+location = "-1"
+pub.publish("team11, team11,-1,0000")
+print("Timer ended at {} for Team 11".format(time.time))
+time.sleep(1)
 
 
 # class license_plate:   
