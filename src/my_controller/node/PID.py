@@ -16,6 +16,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from cv_bridge import CvBridge, CvBridgeError
+import numpy as np
 
 ## Image converter to robot movement for line following
 #
@@ -36,6 +37,8 @@ class image_converter:
     self.move = Twist()
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.callback)
+    self.min = 1000000000
+    self.count = 1
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -53,10 +56,25 @@ class image_converter:
     gray = cv2.cvtColor(cv_image, cv2.COLOR_RGB2GRAY)
     gblur = cv2.GaussianBlur(gray, (5,5), 0)
     ret,binary = cv2.threshold(gblur,75,255, cv2.THRESH_BINARY)
-    
-        
+    # ret2,binary23 = cv2.threshold(gblur,self.count,255, cv2.THRESH_BINARY)
+
+
+  # kernel = np.ones((10, 10), np.uint8)
+  # binary235 = cv2.dilate(binary23, kernel, iterations=2)
+  # gt = binary235[650:,640:]
+  # Mg = cv2.moments(gt)
+  # cz = int(Mg["m10"]/Mg["m00"]) + 640
+  # cr = int(Mg["m01"]/Mg["m00"]) + 650
+  # binary2357 = cv2.circle(binary235,(cz,cr),15,(255,0,0),cv2.FILLED)
+
+    # print(self.count)
+    # self.count = self.count + 1
+    # if (self.count > 250):
+    #   self.count = 1
     # Calculate the center of mass of the image using Open cv moments
+    print(self.min)
     M = cv2.moments(binary)
+    print(M["m00"])
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"])
     Cy1 = cY
@@ -66,10 +84,19 @@ class image_converter:
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
+<<<<<<< HEAD
     # print("Okay")
     # print(M["m00"])
+=======
+    print("Okay")
+    
+>>>>>>> 247c0d07ec3471fcfdac1489373030b1e492e296
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
+    if(M["m00"] < self.min):
+      self.min = M["m00"]
+    self.min = self.min + 1
+    print("current min", self.min)
     #start at 100
     # Draw a circle at the center of mass coordinates for checking functionality
     final = cv2.circle(cv_image,(cX,cY),15,(255,0,0),cv2.FILLED)
@@ -104,7 +131,7 @@ class image_converter:
 
     #Display camera image with center of mass dot to check functionality
     cv2.imshow("Image", bin5)
-    #print(cY)
+    print(cY)
     #cv2.imshow("Image window", final)
     cv2.waitKey(3)
 
