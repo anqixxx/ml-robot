@@ -60,14 +60,14 @@ class image_converter:
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"])
     Cy1 = cY
-    print(cY)
+    # print(cY)
     newim = gblur[(cY):,:]
     ret,bin3 = cv2.threshold(newim,85,255, cv2.THRESH_BINARY_INV)
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
-    print("Okay")
-    print(M["m00"])
+    # print("Okay")
+    # print(M["m00"])
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
     #start at 100
@@ -84,23 +84,23 @@ class image_converter:
     lthresh = 600
     rthresh = 680
     ythresh = 700
-    print(final.shape)
-    print(cX, cY, "CM!")
+    # print(final.shape)
+    # print(cX, cY, "CM!")
     if(cX < lthresh or cY > ythresh):
         self.move.linear.x = 0
         self.move.angular.z = 0.5
         self.image_pub.publish(self.move)
-        print("111111")
+        # print("111111")
     elif(cX > rthresh):
         self.move.linear.x = 0
         self.move.angular.z = -0.5 #neg
         self.image_pub.publish(self.move)
-        print("2222222222")
+        # print("2222222222")
     else:
         self.move.linear.x = 0.075
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
-        print("3333333333")
+        # print("3333333333")
 
     #Display camera image with center of mass dot to check functionality
     cv2.imshow("Image", bin5)
@@ -115,7 +115,7 @@ class image_converter:
 def main(args):
     rospy.init_node('image_converter', anonymous=True)
     ic = image_converter()
-    print("yay!")
+    # print("yay!")
     try:
         rospy.spin()
     except KeyboardInterrupt:
