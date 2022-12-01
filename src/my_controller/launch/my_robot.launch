@@ -6,11 +6,17 @@
          output="screen">
    </node>
    
-   <!-- <node pkg="my_controller"
+   <node pkg="my_controller"
+         type="SIFT.py"
+         name="SIFT" 
+         output="screen">
+   </node>
+   
+   <node pkg="my_controller"
          type="score_interface.py"
          name="score_interface" 
          output="screen">
-   </node> -->
+   </node>
 
    <!-- <node pkg="my_controller"
          type="score_interface.py"

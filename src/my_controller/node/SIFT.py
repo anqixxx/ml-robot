@@ -49,7 +49,7 @@ class image_converter:
         except CvBridgeError as e:
             print(e)
         
-        MIN_MATCH_COUNT = 3
+        MIN_MATCH_COUNT = 7
 
         file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
         assert os.path.exists(file_name1)
@@ -85,7 +85,7 @@ class image_converter:
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
-            print(M)
+            # print(M)
             # Take matrix (M) and find the matrix inverse and apply to the image
             matchesMask = mask.ravel().tolist()
             h,w = img1.shape

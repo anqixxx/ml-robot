@@ -92,7 +92,7 @@ class image_converter:
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"])
     Cy1 = cY
-    print(cY)
+    # print(cY)
     newim = gblur[(cY):,:]
     newerim = newim[int(newim.shape[0]/2):, :]
 
@@ -101,7 +101,8 @@ class image_converter:
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
-
+    print("Okay")
+    
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
@@ -218,7 +219,7 @@ class image_converter:
 def main(args):
     rospy.init_node('image_converter', anonymous=True)
     ic = image_converter()
-    print("yay!")
+    # print("yay!")
     try:
         rospy.spin()
     except KeyboardInterrupt:
