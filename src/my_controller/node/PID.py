@@ -101,13 +101,8 @@ class image_converter:
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
-<<<<<<< HEAD
     # print("Okay")
     # print(M["m00"])
-=======
-    print("Okay")
-    
->>>>>>> 247c0d07ec3471fcfdac1489373030b1e492e296
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
