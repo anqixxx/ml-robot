@@ -44,6 +44,10 @@ class image_converter:
     self.Cx = 0
     self.pedestDetected = False
     self.captureCount = 0
+    self.reposition = False
+    self.hillSection = False
+    self.hillcounter = 0
+    self.hillDone = False
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -65,7 +69,7 @@ class image_converter:
     ret,binary = cv2.threshold(gblur,75,255, cv2.THRESH_BINARY)
 
 #Start Comment
-    # ret2,binary23 = cv2.threshold(gblur,self.count,255, cv2.THRESH_BINARY)
+    ret,binary235 = cv2.threshold(gblur,200,255, cv2.THRESH_BINARY)
 
 
 
@@ -86,9 +90,9 @@ class image_converter:
 
 #End note
 
-    print(self.min)
+    #print(self.min)
     M = cv2.moments(binary)
-    print(M["m00"])
+    #print(M["m00"])
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"])
     Cy1 = cY
@@ -113,6 +117,15 @@ class image_converter:
 
     cXX = 0
     cYY = 0
+
+    ret,bin37 = cv2.threshold(gblur,180,255, cv2.THRESH_BINARY_INV)#120
+    ret,bin47 = cv2.threshold(gblur,120,255, cv2.THRESH_BINARY_INV)
+    bin57 = cv2.subtract(bin37,bin47)
+    M7 = cv2.moments(bin57)
+    
+    cX7 = int(M7["m10"]/M7["m00"])
+    cY7 = int(M7["m01"]/M7["m00"])
+    #final = cv2.circle(final,(cX7,cY7),15,(255,0,0),cv2.FILLED)
 
     if(M2["m00"] != 0):
       cXX = int(M2["m10"]/M2["m00"])
@@ -140,7 +153,7 @@ class image_converter:
         M3 = cv2.moments(new_imerg)
         self.captureCount = self.captureCount + 1
         print(M3["m00"], "yeeeeeeeeeeet!")
-        if(self.captureCount > 4 and M3["m00"]>100000):
+        if(self.reposition and self.captureCount > 4 and M3["m00"]>100000):
           print("Pedestrian foundddddddddddddd!")
           self.pedestDetected = True
     
@@ -155,6 +168,7 @@ class image_converter:
     # Draw a circle at the center of mass coordinates for checking functionality
     final1 = cv2.circle(cv_image,(cXX,cYY),15,(255,0,0),cv2.FILLED)
     final = cv2.circle(final1,(self.Cx,cY),15,(255,0,0),cv2.FILLED)
+
     #final = cv2.rectangle(final2,(cX-125,320),(cX+125,550),(255,0,0),cv2.FILLED)
 
     # Line following robot movement control.
@@ -169,27 +183,78 @@ class image_converter:
     ythresh = 650#700
     print(final.shape)
     print(cX, cY, "CM!")
-    if(redLineDetected and not(self.pedestDetected)):
-      self.move.linear.x = 0
-      self.move.angular.z = 0
-      self.image_pub.publish(self.move)
-      print("Red Line Detected")
+    if(redLineDetected and not(self.reposition)):
+      if (cX7 > 445):
+          self.move.linear.x = 0
+          self.move.angular.z = -0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning")
+      elif (cX7 < 444):
+          self.move.linear.x = 0
+          self.move.angular.z = 0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning")
+      else:  
+          self.move.linear.x = 0
+          self.move.angular.z = 0
+          self.image_pub.publish(self.move)
+          self.reposition = True
+          print("Repositioning")
+    elif(redLineDetected and not(self.pedestDetected)):
+        self.move.linear.x = 0
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        print("Red Line Detected")
     elif(self.pedestDetected):
+      if (cY7 > 400):
+        self.move.linear.x = 0#0.3
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        final = binary235
+        self.hillSection = True
+        self.pedestDetected = False
+        print("We crossed!!!!!!", cY7)
+      else:
+        self.move.linear.x = 0.3
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        print("Pedest Detected - move move move!!!!!", cY7)
+    elif(self.hillSection and not(self.hillDone)):
+      final = cv2.Canny(binary235, 200,250)
+      cty = final[700, 640:]
+      g = []
+      self.hillcounter = self.hillcounter + 1
+      for i in range(len(cty)):
+        if (cty[i] > 0):
+          g.append(i + 640)
+      if (len(g)> 0):
+        vp = sum(g)/len(g)
+        final = cv2.circle(final1,(int(vp),718),10,(255,0,0),cv2.FILLED)
+      else:
+        vp = -1
 
-      ret,bin37 = cv2.threshold(gblur,180,255, cv2.THRESH_BINARY_INV)#120
-      ret,bin47 = cv2.threshold(gblur,120,255, cv2.THRESH_BINARY_INV)
-      bin57 = cv2.subtract(bin37,bin47)
-      M7 = cv2.moments(bin57)
-      
-      cX7 = int(M7["m10"]/M7["m00"])
-      cY7 = int(M7["m01"]/M7["m00"])
-      final = cv2.circle(final,(cX7,cY7),15,(255,0,0),cv2.FILLED)
-
-      self.move.linear.x = 0
-      self.move.angular.z = 0
-      self.image_pub.publish(self.move)
-      print("Pedest Detected - move move move!!!!!", cX7)
+      if (self.hillcounter > 500):
+        if (sum(bin5[-1,:]) > 150000):
+          self.hillDone = True
+          self.reposition = False
+          self.pedestDetected = False
+      if(vp != -1 and vp < 1000):
+        self.move.linear.x = 0
+        self.move.angular.z = 0.5
+        self.image_pub.publish(self.move)
+        print("We are now pushing through the hill section!", vp)
+      elif(vp != -1 and vp > 1050):
+        self.move.linear.x = 0
+        self.move.angular.z = -0.25
+        self.image_pub.publish(self.move)
+        print("We are now pushing through the hill section!", vp)
+      else:
+        self.move.linear.x = 0.15
+        self.move.angular.z = 0.15
+        self.image_pub.publish(self.move)
+        print("We are now pushing through the hill section!", vp)
     else:
+      print("ohhhhhh yeahahahahaahahahha", cX7, "y:", cY7)
       if(cX < lthresh or cY > ythresh):
           self.move.linear.x = 0
           self.move.angular.z = 1#0.5
@@ -208,8 +273,8 @@ class image_converter:
 
     #Display camera image with center of mass dot to check functionality
     #cv2.imshow("Image", new_imerg)
-    print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
-    cv2.imshow("Image window", final)
+    #print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
+    cv2.imshow("Image window", bin5)#final)
     cv2.waitKey(3)
 
 ## The main function for running the image converter to robot movement
