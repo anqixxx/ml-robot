@@ -95,6 +95,7 @@ class image_converter:
 
             # sa = s.LinearAlign(img1)
             # plt.imshow(sa.align(img2))
+        
 
         else:
             print( "Not enough matches are found - {}/{}".format(len(good), MIN_MATCH_COUNT) )
