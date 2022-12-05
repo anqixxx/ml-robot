@@ -10,8 +10,13 @@ from numpy.linalg import inv
 import csv
 from random import randint
 import string
-from PIL import Image, ImageFont, ImageDraw
+# CNN
+from tensorflow.keras import layers
+from tensorflow.keras import models
+from tensorflow.keras import optimizers
 
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras import backend
 
 file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
 assert os.path.exists(file_name1)
@@ -70,6 +75,12 @@ if img3 is not None:
     # location = img3[564:368, 848:535]
     location = img3[367:535, 560:848]
     plt.imshow(location, 'gray'),plt.show()
+
+    # Test code for cnn, ignore
+    # img_aug = np.expand_dims(location, axis=0)
+    # y_predict = conv_model.predict(img_aug)[0] # defined in CNN
+    # print(one_hot_rev(int(y_predict. argmax())))
+
 
     # Find plate
     # plate_1 = img3.crop((247, 661, 362, 747))
