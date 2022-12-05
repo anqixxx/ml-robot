@@ -13,6 +13,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from cv_bridge import CvBridge, CvBridgeError
 import matplotlib.pyplot as plt
+from numpy.linalg import inv
 
 ## The constructor creates a subsciber that subscribes to the camera feed
 #  The subscriber takes in a callback function as a parameter which 
@@ -75,40 +76,44 @@ class image_converter:
                 good.append(m)
 
         if len(good)>MIN_MATCH_COUNT:
-            status = cv2.imwrite('/home/fizzer/ros_ws/src/my_controller/node/plate_img/plate_{}.bmp'.format(self.count()), img2)
-            print("Image written to file-system : ",status)
-            # cv2.imwrite(os.path.join(path , 'waka.bmp'), img2)
-            # cv2.waitKey(0)  
-            print("Match found, count is {} images".format(self.count()))
-            self.i = self.i+1
-
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
-            # print(M)
-            # Take matrix (M) and find the matrix inverse and apply to the image
-            matchesMask = mask.ravel().tolist()
-            h,w = img1.shape
-            pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
-            dst = cv2.perspectiveTransform(pts,M)
-            img2 = cv2.polylines(img2,[np.int32(dst)],True,255,3, cv2.LINE_AA)
+            
+            if M is not None:
+                invM = inv(M)
+                # Take matrix (M) and find the matrix inverse and apply to the image
+                h,w = img1.shape
+                pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+                dst = cv2.perspectiveTransform(pts,M)
+                invM = np.linalg.inv(M)
+                img3 = cv2.warpPerspective(img2, invM, (w, h))
 
-            # sa = s.LinearAlign(img1)
-            # plt.imshow(sa.align(img2))
-        
+                # plt.imshow(img3, 'gray'),plt.show()
+
+        if img3 is not None:
+            # Find location
+            # in openCV: cropped = img[start_row:end_row, start_col:end_col]
+            location = img3[367:535, 560:848]
+            plt.imshow(location, 'gray'),plt.show()
+
+            # Find plate
+            plate_1 = img3[661:747, 247:362]
+            plt.imshow(plate_1, 'gray'),plt.show()
+
+            plate_2 = img3[661:747, 362:478]
+            plt.imshow(plate_2, 'gray'),plt.show()
+
+            plate_3 = img3[661:747, 583:698]
+            plt.imshow(plate_3, 'gray'),plt.show()
+
+            plate_4 = img3[661:747, 698:813]
+            plt.imshow(plate_4, 'gray'),plt.show()
 
         else:
             print( "Not enough matches are found - {}/{}".format(len(good), MIN_MATCH_COUNT) )
             matchesMask = None
         
-        # if len(good)> 1:
-        #     draw_params = dict(matchColor = (0,255,0), # draw matches in green color
-        #             singlePointColor = None,
-        #             matchesMask = matchesMask, # draw only inliers
-        #             flags = 2)
-        #     img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
-        #     plt.imshow(img3, 'gray'),plt.show()
-
         
 ## The main function for running the image converter
 def main(args):
