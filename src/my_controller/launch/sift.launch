@@ -1,10 +1,10 @@
 <launch>
    <!-- My Package launch file -->
-   <node pkg="my_controller"
+   <!-- <node pkg="my_controller"
          type="SIFT.py"
          name="SIFT" 
          output="screen">
-   </node>
+   </node> -->
    
    <!-- <node pkg="my_controller"
          type="count_images.py"
@@ -23,4 +23,16 @@
          name="feature_mapping" 
          output="screen">
    </node> -->
+   
+   <!-- <node pkg="my_controller"
+         type="plate_generator.py"
+         name="plate_generator" 
+         output="screen">
+   </node> -->
+
+    <node pkg="my_controller"
+         type="image_processing.py"
+         name="image_processing" 
+         output="screen">
+   </node>
 </launch>
