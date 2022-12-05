@@ -39,6 +39,15 @@ class image_converter:
     self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.callback)
     self.min = 1000000000
     self.count = 1
+    self.preimerg = 0
+    self.recordCx = True
+    self.Cx = 0
+    self.pedestDetected = False
+    self.captureCount = 0
+    self.reposition = False
+    self.hillSection = False
+    self.hillcounter = 0
+    self.hillDone = False
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -53,49 +62,115 @@ class image_converter:
       print(e)
 
     # Image cleaning pipeline: Grayscale, gaussian blur image, convert to a binary map
+    redLineDetected = False
+    pedestDetected = False
     gray = cv2.cvtColor(cv_image, cv2.COLOR_RGB2GRAY)
     gblur = cv2.GaussianBlur(gray, (5,5), 0)
     ret,binary = cv2.threshold(gblur,75,255, cv2.THRESH_BINARY)
-    # ret2,binary23 = cv2.threshold(gblur,self.count,255, cv2.THRESH_BINARY)
+
+#Start Comment
+    ret,binary235 = cv2.threshold(gblur,200,255, cv2.THRESH_BINARY)
 
 
-  # kernel = np.ones((10, 10), np.uint8)
-  # binary235 = cv2.dilate(binary23, kernel, iterations=2)
-  # gt = binary235[650:,640:]
-  # Mg = cv2.moments(gt)
-  # cz = int(Mg["m10"]/Mg["m00"]) + 640
-  # cr = int(Mg["m01"]/Mg["m00"]) + 650
-  # binary2357 = cv2.circle(binary235,(cz,cr),15,(255,0,0),cv2.FILLED)
 
-    # print(self.count)
-    # self.count = self.count + 1
-    # if (self.count > 250):
+    # kernel = np.ones((10, 10), np.uint8)
+    # binary235 = cv2.dilate(binary23, kernel, iterations=2)
+    # gt = binary235[650:,640:]
+    # Mg = cv2.moments(gt)
+    #cz = int(Mg["m10"]/Mg["m00"]) + 640
+    #cr = int(Mg["m01"]/Mg["m00"]) + 650
+    #binary2357 = cv2.circle(binary235,(cz,cr),15,(255,0,0),cv2.FILLED)
+
+    #print(self.count)
+    #self.count = self.count + 1
+    #if (self.count > 250):
     #   self.count = 1
     # Calculate the center of mass of the image using Open cv moments
-    print(self.min)
+
+
+#End note
+
+    #print(self.min)
     M = cv2.moments(binary)
-    print(M["m00"])
+    #print(M["m00"])
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"])
     Cy1 = cY
     # print(cY)
     newim = gblur[(cY):,:]
+    newerim = newim[int(newim.shape[0]/2):, :]
+
+
     ret,bin3 = cv2.threshold(newim,85,255, cv2.THRESH_BINARY_INV)
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
-    print("Okay")
-    
+    # print("Okay")
+    # print(M["m00"])
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
-    if(M["m00"] < self.min):
-      self.min = M["m00"]
-    self.min = self.min + 1
-    print("current min", self.min)
-    #start at 100
-    # Draw a circle at the center of mass coordinates for checking functionality
-    final = cv2.circle(cv_image,(cX,cY),15,(255,0,0),cv2.FILLED)
+
+    ret,bin9 = cv2.threshold(newerim,31,255, cv2.THRESH_BINARY_INV)
+    ret,bin10 = cv2.threshold(newerim,28,255, cv2.THRESH_BINARY_INV)
+    bin11 = cv2.subtract(bin9,bin10)
+    M2 = cv2.moments(bin11)
+
+    cXX = 0
+    cYY = 0
+
+    ret,bin37 = cv2.threshold(gblur,180,255, cv2.THRESH_BINARY_INV)#120
+    ret,bin47 = cv2.threshold(gblur,120,255, cv2.THRESH_BINARY_INV)
+    bin57 = cv2.subtract(bin37,bin47)
+    M7 = cv2.moments(bin57)
     
+    cX7 = int(M7["m10"]/M7["m00"])
+    cY7 = int(M7["m01"]/M7["m00"])
+    #final = cv2.circle(final,(cX7,cY7),15,(255,0,0),cv2.FILLED)
+
+    if(M2["m00"] != 0):
+      cXX = int(M2["m10"]/M2["m00"])
+      cYY = int(M2["m01"]/M2["m00"]) + Cy1 + int(newim.shape[0]/2)
+      if(M2["m00"] > 2000000 and cXX > 550 and cXX < 750):
+        redLineDetected = True
+        if(self.recordCx):
+          print("abcdefghijklmnopqrstuvwxyz")
+          self.recordCx = False
+          self.Cx = cX
+    
+    if(redLineDetected and not(self.pedestDetected)):
+      imerg = gblur[320:550,self.Cx-125:self.Cx+125]
+      print(type(self.preimerg))
+      if(type(self.preimerg) == int):
+        self.preimerg = imerg
+        self.captureCount = self.captureCount + 1
+      else:
+        ret,bin91 = cv2.threshold(imerg,100,255, cv2.THRESH_BINARY)
+        ret,bin101 = cv2.threshold(self.preimerg,100,255, cv2.THRESH_BINARY)
+        new_imerg = cv2.subtract(bin91,bin101)
+        print(imerg.shape, "lololololololololol")
+        print(self.preimerg.shape, "rtwwewewerwerwrwerew")
+        self.preimerg = imerg
+        M3 = cv2.moments(new_imerg)
+        self.captureCount = self.captureCount + 1
+        print(M3["m00"], "yeeeeeeeeeeet!")
+        if(self.reposition and self.captureCount > 4 and M3["m00"]>100000):
+          print("Pedestrian foundddddddddddddd!")
+          self.pedestDetected = True
+    
+    if(self.pedestDetected):
+      print("Let's gooooooooooooooo1312123123")
+
+    #if(M["m00"] < self.min):
+    #  self.min = M["m00"]
+    #self.min = self.min + 1
+    #print("current min", self.min)
+    # start at 100
+    # Draw a circle at the center of mass coordinates for checking functionality
+    final1 = cv2.circle(cv_image,(cXX,cYY),15,(255,0,0),cv2.FILLED)
+    final = cv2.circle(final1,(self.Cx,cY),15,(255,0,0),cv2.FILLED)
+
+    #final = cv2.rectangle(final2,(cX-125,320),(cX+125,550),(255,0,0),cv2.FILLED)
+
     # Line following robot movement control.
     # If the x centre of mass is lower than the lthresh,
     # the robot will turn to the left until the centre of mass is in the center.
@@ -105,29 +180,101 @@ class image_converter:
     # The ythresh is used to ensure that distant noise (paths) do not alter the robots direction
     lthresh = 600
     rthresh = 680
-    ythresh = 700
-    # print(final.shape)
-    # print(cX, cY, "CM!")
-    if(cX < lthresh or cY > ythresh):
+    ythresh = 650#700
+    print(final.shape)
+    print(cX, cY, "CM!")
+    if(redLineDetected and not(self.reposition)):
+      if (cX7 > 445):
+          self.move.linear.x = 0
+          self.move.angular.z = -0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning")
+      elif (cX7 < 444):
+          self.move.linear.x = 0
+          self.move.angular.z = 0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning")
+      else:  
+          self.move.linear.x = 0
+          self.move.angular.z = 0
+          self.image_pub.publish(self.move)
+          self.reposition = True
+          print("Repositioning")
+    elif(redLineDetected and not(self.pedestDetected)):
+        self.move.linear.x = 0
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        print("Red Line Detected")
+    elif(self.pedestDetected):
+      if (cY7 > 400):
+        self.move.linear.x = 0#0.3
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        final = binary235
+        self.hillSection = True
+        self.pedestDetected = False
+        print("We crossed!!!!!!", cY7)
+      else:
+        self.move.linear.x = 0.3
+        self.move.angular.z = 0
+        self.image_pub.publish(self.move)
+        print("Pedest Detected - move move move!!!!!", cY7)
+    elif(self.hillSection and not(self.hillDone)):
+      final = cv2.Canny(binary235, 200,250)
+      cty = final[700, 640:]
+      g = []
+      self.hillcounter = self.hillcounter + 1
+      for i in range(len(cty)):
+        if (cty[i] > 0):
+          g.append(i + 640)
+      if (len(g)> 0):
+        vp = sum(g)/len(g)
+        final = cv2.circle(final1,(int(vp),718),10,(255,0,0),cv2.FILLED)
+      else:
+        vp = -1
+
+      if (self.hillcounter > 500):
+        if (sum(bin5[-1,:]) > 150000):
+          self.hillDone = True
+          self.reposition = False
+          self.pedestDetected = False
+      if(vp != -1 and vp < 1000):
         self.move.linear.x = 0
         self.move.angular.z = 0.5
         self.image_pub.publish(self.move)
-        # print("111111")
-    elif(cX > rthresh):
+        print("We are now pushing through the hill section!", vp)
+      elif(vp != -1 and vp > 1050):
         self.move.linear.x = 0
-        self.move.angular.z = -0.5 #neg
+        self.move.angular.z = -0.25
         self.image_pub.publish(self.move)
-        # print("2222222222")
+        print("We are now pushing through the hill section!", vp)
+      else:
+        self.move.linear.x = 0.15
+        self.move.angular.z = 0.15
+        self.image_pub.publish(self.move)
+        print("We are now pushing through the hill section!", vp)
     else:
-        self.move.linear.x = 0.075
-        self.move.angular.z = 0
-        self.image_pub.publish(self.move)
-        # print("3333333333")
+      print("ohhhhhh yeahahahahaahahahha", cX7, "y:", cY7)
+      if(cX < lthresh or cY > ythresh):
+          self.move.linear.x = 0
+          self.move.angular.z = 1#0.5
+          self.image_pub.publish(self.move)
+          print("move left")
+      elif(cX > rthresh):
+          self.move.linear.x = 0
+          self.move.angular.z = -1#-0.5 #neg
+          self.image_pub.publish(self.move)
+          print("move right")
+      else:
+          self.move.linear.x = 0.2#0.075
+          self.move.angular.z = 0
+          self.image_pub.publish(self.move)
+          print("forward")
 
     #Display camera image with center of mass dot to check functionality
-    cv2.imshow("Image", bin5)
-    print(cY)
-    #cv2.imshow("Image window", final)
+    #cv2.imshow("Image", new_imerg)
+    #print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
+    cv2.imshow("Image window", bin5)#final)
     cv2.waitKey(3)
 
 ## The main function for running the image converter to robot movement
