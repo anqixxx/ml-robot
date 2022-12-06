@@ -18,6 +18,32 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend
 
+
+# From https://stackoverflow.com/questions/44650888/resize-an-image-without-distortion-opencv
+def resize_image(img, size=(160,100)):
+
+    h, w = img.shape[:2]
+    c = img.shape[2] if len(img.shape)>2 else 1
+
+    if h == w: 
+        return cv2.resize(img, size, cv2.INTER_AREA)
+
+    dif = h if h > w else w
+
+    interpolation = cv2.INTER_AREA if dif > (size[0]+size[1])//2 else cv2.INTER_CUBIC
+
+    x_pos = (dif - w)//2
+    y_pos = (dif - h)//2
+
+    if len(img.shape) == 2:
+        mask = np.zeros((dif, dif), dtype=img.dtype)
+        mask[y_pos:y_pos+h, x_pos:x_pos+w] = img[:h, :w]
+    else:
+        mask = np.zeros((dif, dif, c), dtype=img.dtype)
+        mask[y_pos:y_pos+h, x_pos:x_pos+w, :] = img[:h, :w, :]
+
+    return cv2.resize(mask, size, interpolation)
+
 file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
 assert os.path.exists(file_name1)
 file_name2 = os.path.join(os.path.dirname(__file__), 'plate_img/plate_546.bmp')
@@ -74,6 +100,7 @@ if img3 is not None:
     # in openCV: cropped = img[start_row:end_row, start_col:end_col]
     # location = img3[564:368, 848:535]
     location = img3[367:535, 560:848]
+    location = resize_image(location, (160,100))
     plt.imshow(location, 'gray'),plt.show()
 
     # Test code for cnn, ignore
@@ -85,16 +112,20 @@ if img3 is not None:
     # Find plate
     # plate_1 = img3.crop((247, 661, 362, 747))
     plate_1 = img3[661:747, 247:362]
+    plate_1 = resize_image(plate_1, (160,100))
     plt.imshow(plate_1, 'gray'),plt.show()
 
     # plate_2 = img3.crop((326, 661, 478, 747))
     plate_2 = img3[661:747, 362:478]
+    plate_2 = resize_image(plate_2, (160, 100))
     plt.imshow(plate_2, 'gray'),plt.show()
 
     # plate_3 = img3.crop((590, 661, 701, 747))
     plate_3 = img3[661:747, 583:698]
+    plate_3 = resize_image(plate_3, (160, 100))
     plt.imshow(plate_3, 'gray'),plt.show()
 
     # plate_4 = img3.crop((701, 661, 817, 747))
     plate_4 = img3[661:747, 698:813]
+    plate_4 = resize_image(plate_4, (160, 100))
     plt.imshow(plate_4, 'gray'),plt.show()

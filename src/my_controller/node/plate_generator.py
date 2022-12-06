@@ -75,9 +75,10 @@ with open(path + "plates.csv", 'w') as plates_file:
         plt.imshow(img2, 'gray'),plt.show()
 
         # Want to perspective transform but currently doesnt work
-        # # Locate points of the documents
-        # # or object which you want to transform
-        # # Input image, points taken from plt.imshow
+        # How do I match it to the P_image? why is it currently not working?
+        # Locate points of the documents
+        # or object which you want to transform
+        # Input image, points taken from plt.imshow
         # pts1 = np.float32([[95, 153], [237, 189],
         #                 # [127, 676], [478, 663],
         #                 [127, 900], [478, 913]])
@@ -94,3 +95,8 @@ with open(path + "plates.csv", 'w') as plates_file:
         # cv2.imshow('frame', img2) # Initial Capture
         # cv2.imshow('frame1', result) # Transformed Capture
         # plt.imshow(result, 'gray'),plt.show()
+        # dim = (670, img1.shape[1])
+
+        # img3 = cv2.resize(img2, dim)
+        # plt.imshow(img3, 'gray'),plt.show()
+

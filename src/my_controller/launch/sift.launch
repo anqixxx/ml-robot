@@ -35,4 +35,10 @@
          name="image_processing" 
          output="screen">
    </node>
+   
+   <!-- <node pkg="my_controller"
+         type="vector_encoding.py"
+         name="vector_encoding" 
+         output="screen">
+   </node> -->
 </launch>

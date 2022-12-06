@@ -94,6 +94,21 @@ class image_converter:
         if img3 is not None:
             # Find location
             # in openCV: cropped = img[start_row:end_row, start_col:end_col]
+            # location = img3[367:535, 560:848]
+            # plt.imshow(location, 'gray'),plt.show()
+
+            # # Find plate, proper cuts
+            # plate_1 = img3[661:747, 247:362]
+            # plt.imshow(plate_1, 'gray'),plt.show()
+
+            # plate_2 = img3[661:747, 362:478]
+            # plt.imshow(plate_2, 'gray'),plt.show()
+
+            # plate_3 = img3[661:747, 583:698]
+            # plt.imshow(plate_3, 'gray'),plt.show()
+
+            # plate_4 = img3[661:747, 698:813]
+            # plt.imshow(plate_4, 'gray'),plt.show()
             location = img3[367:535, 560:848]
             plt.imshow(location, 'gray'),plt.show()
 

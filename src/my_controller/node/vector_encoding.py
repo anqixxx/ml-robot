@@ -12,12 +12,15 @@ from PIL import Image, ImageFont, ImageDraw
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
+import tensorflow as tf
+
 from tensorflow.keras import layers
 from tensorflow.keras import models
 from tensorflow.keras import optimizers
 
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend
+
 
 # Function that converts row number 
 # (i.e. the changed label from the Y dataset)
@@ -47,70 +50,114 @@ def count():
     print("Count is {}".format(count))
     return(count+1)
 
+# Display images in the training data set. 
+def displayImage(index):
+  print('here')
+  # img = tf.shape( tf.squeeze( X_dataset[index]))
+  img = X_dataset[index]
+
+  img_aug = np.expand_dims(img, axis=0)
+  # img_aug = X_dataset[index]
+  # print(conv_model.predict(img_aug)[0])
+  y_predict = conv_model.predict(img_aug)[0]
+  
+  plt.imshow(tf.squeeze( img))
+  # print( np.max(y_predict))
+
+  print(one_hot_rev(int(y_predict. argmax())))
+
+
 NUMBER_OF_LABELS = 36
 dir_path = '/home/fizzer/ros_ws/src/my_controller/node/unlabelled/'
 all_dataset = [] 
 
 for path in os.scandir(dir_path):
     if path.is_file():
-        im = Image.open(path)
+        print(path)
+        file_name = os.path.join(os.path.dirname(dir_path), str(path.name))
+        assert os.path.exists(file_name)
+        # print(file_name)
+        im = cv2.imread(file_name, 0)
+        # plt.imshow(im, 'gray'),plt.show()
         # so we knowh the name of the plate
         # name is 11 letters long
         # last 4 are .png
         # first is P
         # take last 10 to last 4
         # string[ start_index_pos: end_index_pos: step_size]
-        plate_name = path[-10:-4]
+        # jk path is in form P7_YS59.png
+        plate_name = str(path.name)
+        print(plate_name)
 
-        # section off first image 
-        label_loc = one_hot_label(plate_name[0])
-        location = im.crop((48, 75, 148, 223))
+        # # section off first image 
+        # label_loc = one_hot_label(plate_name[1])
+        # location = im[140:449, 340:570]
+        # # plt.imshow(location, 'gray'),plt.show()
+        # # location = im.crop((400, 140, 550, 449))
+        # # imgplot = plt.imshow(image_1) # image
+        # temp_tuple = [np.array(location), label_loc]
+        # all_dataset.append(tuple(temp_tuple))
+
+    
+        label_1 = one_hot_label(plate_name[3])
+        # print(label_1)
+        # image_1 = im.crop((48, 728, 148, 877))
+        image_1 = im[725:885, 48:148]
+        # plt.imshow(image_1, 'gray'),plt.show()
+        # print(image_1)
         # imgplot = plt.imshow(image_1) # image
         temp_tuple = [np.array(image_1), label_1]
         all_dataset.append(tuple(temp_tuple))
 
-
-        label_1 = one_hot_label(plate_name[2])
-        image_1 = im.crop((48, 75, 148, 223))
-        # imgplot = plt.imshow(image_1) # image
-        temp_tuple = [np.array(image_1), label_1]
-        all_dataset.append(tuple(temp_tuple))
-
-        label_2 = one_hot_label(plate_name[3])
-        image_2 = im.crop((149, 75, 249, 223))
+        label_2 = one_hot_label(plate_name[4])
+        # image_2 = im.crop((149, 728, 249, 877))
+        image_2 = im[725:885, 149:249]
+        # plt.imshow(image_2, 'gray'),plt.show()
         # imgplot = plt.imshow(image_2) # image
         temp_tuple = [np.array(image_2), label_2]
         all_dataset.append(tuple(temp_tuple))
 
-        label_3 = one_hot_label(plate_name[4])
-        image_3 = im.crop((351, 75, 451, 223))
+        label_3 = one_hot_label(plate_name[5])
+        # image_3 = im.crop((351, 728, 451, 877))
+        image_3 = im[725:885, 351:451]
+        # plt.imshow(image_3, 'gray'),plt.show()
         # imgplot = plt.imshow(image_3) # image
         temp_tuple = [np.array(image_3), label_3]
         all_dataset.append(tuple(temp_tuple))
 
-        label_4 = one_hot_label(plate_name[5])
-        image_4 = im.crop((452, 75, 552, 223))
+        label_4 = one_hot_label(plate_name[6])
+        # image_4 = im.crop((452, 728, 552, 877))
+        image_4 = im[725:885, 452:552]
+        # plt.imshow(image_4, 'gray'),plt.show()
         # imgplot = plt.imshow(image_4) # image
         temp_tuple = [np.array(image_4), label_4]
         all_dataset.append(tuple(temp_tuple))
+    
 
 # Genereate X and Y datasets
+# X_dataset_orig = np.array([data[0] for data in all_dataset[:]], dtype=np.float32)
+# Y_dataset_orig = np.array([[data[1]] for data in all_dataset], dtype=np.float32)
+# X_dataset_orig = np.array([data[0] for data in all_dataset[:]]).reshape(60000, 160, 100, 1)
 X_dataset_orig = np.array([data[0] for data in all_dataset[:]])
 Y_dataset_orig = np.array([[data[1]] for data in all_dataset])
+
 # X is examples, Y is labels for the examples
 
 # Normalize X (images) dataset
-X_dataset = X_dataset_orig/255.
-
+X_dataset = (X_dataset_orig/255)
+plt.imshow(X_dataset_orig[6], 'gray'),plt.show()
+X_dataset = tf.expand_dims(X_dataset, axis=-1)
+# X_dataset = X_dataset.reshape([X_dataset.shape[0], [1]] + list(X_dataset.shape[1:]))
+# X_dataset = X_dataset.reshape(3264000, 160, 100, 1)
 # Convert Y dataset to one-hot encoding
 Y_dataset = convert_to_one_hot(Y_dataset_orig, NUMBER_OF_LABELS).T
-print(Y_dataset)
-print(X_dataset)
+# print(Y_dataset)
+# print(X_dataset)
 
 # Model definition
 conv_model = models.Sequential()
 conv_model.add(layers.Conv2D(32, (3, 3), activation='relu',
-                             input_shape=(148, 100, 3)))
+                             input_shape=(160, 100, 1)))
 conv_model.add(layers.MaxPooling2D((2, 2)))
 conv_model.add(layers.Conv2D(64, (3, 3), activation='relu'))
 conv_model.add(layers.MaxPooling2D((2, 2)))
@@ -129,10 +176,31 @@ conv_model.compile(loss='categorical_crossentropy',
                    optimizer=optimizers.RMSprop(lr=LEARNING_RATE),
                    metrics=['acc'])
 # Metrics is like eval critera, in this case acc is accuracy, we want to track this
-VALIDATION_SPLIT = .2 # used to validate dataset
 
+VALIDATION_SPLIT = .2 # used to validate dataset
 history_conv = conv_model.fit(X_dataset, Y_dataset, 
                               validation_split=VALIDATION_SPLIT, 
                               epochs=80, # Epoch is one full iteration of the dataset
                               batch_size=16) 
                               # Every time you do a training set, how many examples from the data you take
+
+# Model Loss
+plt.plot(history_conv.history['loss'])
+plt.plot(history_conv.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train loss', 'val loss'], loc='upper left')
+plt.show()
+
+# Model Accuracy
+plt.plot(history_conv.history['acc'])
+plt.plot(history_conv.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy (%)')
+plt.xlabel('epoch')
+plt.legend(['train accuracy', 'val accuracy'], loc='upper left')
+plt.show()
+
+
+displayImage(6)
