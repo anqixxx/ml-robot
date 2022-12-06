@@ -48,6 +48,11 @@ class image_converter:
     self.hillSection = False
     self.hillcounter = 0
     self.hillDone = False
+    self.redLineDetected = False
+    self.redlines = 0
+    self.startdelay = False
+    self.delay2 = 0
+    self.twocross = False
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -106,7 +111,7 @@ class image_converter:
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
     # print("Okay")
-    # print(M["m00"])
+    print(M["m00"], "This is it, hopefully, faithfully -----------------------")
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
@@ -122,22 +127,41 @@ class image_converter:
     ret,bin47 = cv2.threshold(gblur,120,255, cv2.THRESH_BINARY_INV)
     bin57 = cv2.subtract(bin37,bin47)
     M7 = cv2.moments(bin57)
+
+    #ret,bin97 = cv2.threshold(gblur,180,255, cv2.THRESH_BINARY_INV)
+    #ret,bin98 = cv2.threshold(gblur,110,255, cv2.THRESH_BINARY_INV)
+    #bin99 = cv2.subtract(bin97,bin98)
+    #M9 = cv2.moments(bin99)
     
     cX7 = int(M7["m10"]/M7["m00"])
     cY7 = int(M7["m01"]/M7["m00"])
-    #final = cv2.circle(final,(cX7,cY7),15,(255,0,0),cv2.FILLED)
+    #cX9 = int(M9["m10"]/M9["m00"])
+    #cY9 = int(M9["m01"]/M9["m00"])
+
+    if (self.startdelay):
+      if (self.delay2 < 500):
+        self.delay2 = self.delay2 + 1
+
+    if (self.delay2 > 200):
+      if (self.twocross):
+        self.redlines = self.redlines + 1
+        self.twocross = False
+        self.startdelay = False
+      print("We start now now now now now now now now")
+
 
     if(M2["m00"] != 0):
       cXX = int(M2["m10"]/M2["m00"])
       cYY = int(M2["m01"]/M2["m00"]) + Cy1 + int(newim.shape[0]/2)
       if(M2["m00"] > 2000000 and cXX > 550 and cXX < 750):
         redLineDetected = True
+        self.redLineDetected = True
         if(self.recordCx):
           print("abcdefghijklmnopqrstuvwxyz")
           self.recordCx = False
           self.Cx = cX
     
-    if(redLineDetected and not(self.pedestDetected)):
+    if(self.redLineDetected and not(self.pedestDetected)): ##changed
       imerg = gblur[320:550,self.Cx-125:self.Cx+125]
       print(type(self.preimerg))
       if(type(self.preimerg) == int):
@@ -153,10 +177,14 @@ class image_converter:
         M3 = cv2.moments(new_imerg)
         self.captureCount = self.captureCount + 1
         print(M3["m00"], "yeeeeeeeeeeet!")
-        if(self.reposition and self.captureCount > 4 and M3["m00"]>100000):
+        if(self.reposition and self.captureCount > 4 and M3["m00"]>100000 and not(self.twocross)):
           print("Pedestrian foundddddddddddddd!")
           self.pedestDetected = True
     
+    if(self.twocross):
+      self.redLineDetected = False
+
+
     if(self.pedestDetected):
       print("Let's gooooooooooooooo1312123123")
 
@@ -168,6 +196,7 @@ class image_converter:
     # Draw a circle at the center of mass coordinates for checking functionality
     final1 = cv2.circle(cv_image,(cXX,cYY),15,(255,0,0),cv2.FILLED)
     final = cv2.circle(final1,(self.Cx,cY),15,(255,0,0),cv2.FILLED)
+    #final = cv2.circle(final,(cX9,cY9),15,(255,0,0),cv2.FILLED)
 
     #final = cv2.rectangle(final2,(cX-125,320),(cX+125,550),(255,0,0),cv2.FILLED)
 
@@ -183,7 +212,7 @@ class image_converter:
     ythresh = 650#700
     print(final.shape)
     print(cX, cY, "CM!")
-    if(redLineDetected and not(self.reposition)):
+    if(self.redLineDetected and not(self.reposition) and self.redlines % 2 == 0): ##changed
       if (cX7 > 445):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
@@ -200,25 +229,51 @@ class image_converter:
           self.image_pub.publish(self.move)
           self.reposition = True
           print("Repositioning")
-    elif(redLineDetected and not(self.pedestDetected)):
+    elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 != 0): ##changed
+      if (cX > 650):
+          self.move.linear.x = 0
+          self.move.angular.z = -0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning Part 2 --------:", self.redlines)
+      elif (cX < 630):
+          self.move.linear.x = 0
+          self.move.angular.z = 0.05
+          self.image_pub.publish(self.move)
+          print("Repositioning Part 2 --------:", self.redlines)
+      else:  
+          self.move.linear.x = 0
+          self.move.angular.z = 0
+          self.image_pub.publish(self.move)
+          self.reposition = True
+          print("Repositioning Part 2 --------:", self.redlines)
+    elif(self.redLineDetected and not(self.pedestDetected)): ##changed
         self.move.linear.x = 0
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
         print("Red Line Detected")
-    elif(self.pedestDetected):
+    elif(self.pedestDetected and self.redlines%2 == 0):
       if (cY7 > 400):
-        self.move.linear.x = 0#0.3
+        self.move.linear.x = 0
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
         final = binary235
         self.hillSection = True
         self.pedestDetected = False
+        self.redLineDetected = False
+        self.redlines = self.redlines + 1
         print("We crossed!!!!!!", cY7)
       else:
         self.move.linear.x = 0.3
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
         print("Pedest Detected - move move move!!!!!", cY7)
+    elif(self.pedestDetected and self.redlines%2 != 0):
+      self.pedestDetected = False
+      self.redLineDetected = False
+      self.twocross = True
+      self.startdelay = True
+      self.delay2 = self.delay2 + 1
+      print("checked -------------------------------------------- checked", self.redlines)
     elif(self.hillSection and not(self.hillDone)):
       final = cv2.Canny(binary235, 200,250)
       cty = final[700, 640:]
@@ -249,8 +304,8 @@ class image_converter:
         self.image_pub.publish(self.move)
         print("We are now pushing through the hill section!", vp)
       else:
-        self.move.linear.x = 0.15
-        self.move.angular.z = 0.15
+        self.move.linear.x = 0.2
+        self.move.angular.z = 0.10
         self.image_pub.publish(self.move)
         print("We are now pushing through the hill section!", vp)
     else:
@@ -274,7 +329,8 @@ class image_converter:
     #Display camera image with center of mass dot to check functionality
     #cv2.imshow("Image", new_imerg)
     #print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
-    cv2.imshow("Image window", bin5)#final)
+
+    cv2.imshow("Image window", bin5)
     cv2.waitKey(3)
 
 ## The main function for running the image converter to robot movement
