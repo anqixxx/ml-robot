@@ -39,16 +39,30 @@ def one_hot_rev(index):
   one_hot_map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
   return one_hot_map[index]
 
-def count():
-    # folder path
-    dir_path = '/home/fizzer/ros_ws/src/my_controller/node/unlabelled/'
-    count = 0
-    # Iterate directory
-    for path in os.scandir(dir_path):
-        if path.is_file():
-            count += 1
-    print("Count is {}".format(count))
-    return(count+1)
+# From https://stackoverflow.com/questions/44650888/resize-an-image-without-distortion-opencv
+def resize_image(img, size=(160,100)):
+
+    h, w = img.shape[:2]
+    c = img.shape[2] if len(img.shape)>2 else 1
+
+    if h == w: 
+        return cv2.resize(img, size, cv2.INTER_AREA)
+
+    dif = h if h > w else w
+
+    interpolation = cv2.INTER_AREA if dif > (size[0]+size[1])//2 else cv2.INTER_CUBIC
+
+    x_pos = (dif - w)//2
+    y_pos = (dif - h)//2
+
+    if len(img.shape) == 2:
+        mask = np.zeros((dif, dif), dtype=img.dtype)
+        mask[y_pos:y_pos+h, x_pos:x_pos+w] = img[:h, :w]
+    else:
+        mask = np.zeros((dif, dif, c), dtype=img.dtype)
+        mask[y_pos:y_pos+h, x_pos:x_pos+w, :] = img[:h, :w, :]
+
+    return cv2.resize(mask, size, interpolation)
 
 # Display images in the training data set. 
 def displayImage(index):
@@ -89,9 +103,10 @@ for path in os.scandir(dir_path):
         plate_name = str(path.name)
         print(plate_name)
 
-        # # section off first image 
+        # section off first image 
         # label_loc = one_hot_label(plate_name[1])
         # location = im[140:449, 340:570]
+        # location = resize_image(location, (160, 100))
         # # plt.imshow(location, 'gray'),plt.show()
         # # location = im.crop((400, 140, 550, 449))
         # # imgplot = plt.imshow(image_1) # image
@@ -137,7 +152,7 @@ for path in os.scandir(dir_path):
 # Genereate X and Y datasets
 # X_dataset_orig = np.array([data[0] for data in all_dataset[:]], dtype=np.float32)
 # Y_dataset_orig = np.array([[data[1]] for data in all_dataset], dtype=np.float32)
-# X_dataset_orig = np.array([data[0] for data in all_dataset[:]]).reshape(60000, 160, 100, 1)
+# X_dataset_orig = np.array([data[0] for data in all_dataset[:]]).reshape(-1, 160, 100, 1)
 X_dataset_orig = np.array([data[0] for data in all_dataset[:]])
 Y_dataset_orig = np.array([[data[1]] for data in all_dataset])
 
@@ -148,7 +163,7 @@ X_dataset = (X_dataset_orig/255)
 plt.imshow(X_dataset_orig[6], 'gray'),plt.show()
 X_dataset = tf.expand_dims(X_dataset, axis=-1)
 # X_dataset = X_dataset.reshape([X_dataset.shape[0], [1]] + list(X_dataset.shape[1:]))
-# X_dataset = X_dataset.reshape(3264000, 160, 100, 1)
+# X_dataset = X_dataset.reshape(-1, 160, 100, 1)
 # Convert Y dataset to one-hot encoding
 Y_dataset = convert_to_one_hot(Y_dataset_orig, NUMBER_OF_LABELS).T
 # print(Y_dataset)
@@ -184,6 +199,7 @@ history_conv = conv_model.fit(X_dataset, Y_dataset,
                               batch_size=16) 
                               # Every time you do a training set, how many examples from the data you take
 
+conv_model.save('/home/fizzer/ros_ws/src/my_controller/node/')
 # Model Loss
 plt.plot(history_conv.history['loss'])
 plt.plot(history_conv.history['val_loss'])
