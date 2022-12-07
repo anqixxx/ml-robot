@@ -27,7 +27,7 @@ from tensorflow.keras import backend
 # (i.e. the changed label from the Y dataset)
 # into a one_hot vector array
 def convert_to_one_hot(Y, C):
-    Y = np.eye(C)[Y.reshape(-1)].T # C is the amount of labels we have (36)
+    Y = np.eye(C)[Y.reshape(-1)].T # C is the amount of labels we have (8)
     return Y # Y must be in number format corresponding to matrix rows
 
 def one_hot_label(character):
@@ -56,7 +56,7 @@ def displayImage(index):
 
   print(one_hot_rev(int(y_predict. argmax())))
 
-NUMBER_OF_LABELS = 7
+NUMBER_OF_LABELS = 8
 dir_path = '/home/fizzer/ros_ws/src/my_controller/node/unlabelled/'
 all_dataset = [] 
 
@@ -104,7 +104,7 @@ conv_model.add(layers.MaxPooling2D((2, 2)))
 conv_model.add(layers.Flatten())
 conv_model.add(layers.Dropout(0.5))
 conv_model.add(layers.Dense(512, activation='relu'))
-conv_model.add(layers.Dense(7, activation='softmax')) # Amount of labels, ie. things we are trying to classify
+conv_model.add(layers.Dense(8, activation='softmax')) # Amount of labels, ie. things we are trying to classify
 
 conv_model.summary()
 LEARNING_RATE = 1e-4 # How fast we are changing the gradient
