@@ -17,4 +17,10 @@
          name="score_interface" 
          output="screen">
    </node>
+   
+   <node pkg="my_controller"
+         type="image_processing.py"
+         name="image_processing" 
+         output="screen">
+   </node>
 </launch>

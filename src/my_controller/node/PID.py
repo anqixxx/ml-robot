@@ -64,7 +64,7 @@ class image_converter:
     self.secimerg = 0
     self.captureCount2 = 0
     self.carDetected = False
-    self.rightTurnspeed = -1 
+    self.rightTurnspeed = -1
     self.leftTurnspeed = 1
     self.forwardSpeed = 0.2
     self.submarine = False
@@ -76,6 +76,8 @@ class image_converter:
     self.finalIntersect = False
     self.turnCount23 = 0
     self.endposition = False
+    self.stop1pl = True
+    self.firstStopc = 0
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -89,12 +91,29 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
+
+
+
     # Image cleaning pipeline: Grayscale, gaussian blur image, convert to a binary map
     redLineDetected = False
     pedestDetected = False
     gray = cv2.cvtColor(cv_image, cv2.COLOR_RGB2GRAY)
     gblur = cv2.GaussianBlur(gray, (5,5), 0)
     ret,binary = cv2.threshold(gblur,75,255, cv2.THRESH_BINARY)
+
+    if(self.stop1pl):
+      self.firstStopc = self.firstStopc + 1
+      #print(self.firstStopc)
+    stop1 = False
+    stop2 = False
+    stop3 = False
+    if(self.firstStopc > 89 and self.firstStopc < 110):
+      stop1 = True
+    if(self.firstStopc > 83 and self.firstStopc < 89):
+      stop3 = True
+    if(self.firstStopc > 235 and self.firstStopc < 255):
+      stop2 = True
+
 
 #Start Comment
     ret,binary235 = cv2.threshold(gblur,200,255, cv2.THRESH_BINARY)
@@ -247,11 +266,23 @@ class image_converter:
     rthresh = 680
     ythresh = 650#700
 
-    if(self.finalIntersect):
+    if(stop1):
+      self.move.linear.x = 0
+      self.move.angular.z = -0.2
+      self.image_pub.publish(self.move)
+    elif(stop2):
+      self.move.linear.x = 0
+      self.move.angular.z = 0.125
+      self.image_pub.publish(self.move)
+    elif(stop3):
+      self.move.linear.x = 0.075
+      self.move.angular.z = -0.1
+      self.image_pub.publish(self.move)
+    elif(self.finalIntersect):
       self.move.linear.x = 0.175
       self.move.angular.z = 0.95
       self.image_pub.publish(self.move)
-      
+      # print(22222222)
       if(self.turnCount23  > 48):
         self.finalIntersect = False
         self.endposition = True
@@ -261,16 +292,19 @@ class image_converter:
       self.move.linear.x = 0
       self.move.angular.z = 0
       self.image_pub.publish(self.move)
+      # print(333333333)
 
     elif (self.smalldelay < 10 and self.smalldelay > 0):
       self.move.linear.x = 0
       self.move.angular.z = 0
       self.image_pub.publish(self.move)
+      # print(44444444)
 
     elif(self.intersectDetect):
       self.move.linear.x = 0.135
       self.move.angular.z = 0.7
       self.image_pub.publish(self.move)
+      # print(55555555)
 
       if(self.turnCount  > 48):
         self.intersectDetect = False
@@ -281,6 +315,7 @@ class image_converter:
       self.move.angular.z = 0
       self.image_pub.publish(self.move)
       self.startsubtr = True
+      # print(66666666)
       if(self.carDetected):
         self.intersectStop = False
         self.startsubtr = False
@@ -291,6 +326,7 @@ class image_converter:
         self.recordCx = True
 
     elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 == 0): ##changed
+      # print(7777777777)
       if (cX7 > 445):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
@@ -308,6 +344,7 @@ class image_converter:
           self.reposition = True
 
     elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 != 0): ##changed
+      # print(8888888888)
       if (cX > 650):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
@@ -325,11 +362,13 @@ class image_converter:
           self.reposition = True
 
     elif(self.redLineDetected and not(self.pedestDetected)): ##changed
+        # print(9999999999)
         self.move.linear.x = 0
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
 
     elif(self.pedestDetected and self.redlines%2 == 0):
+      # print(11010101010101010)
       if (cY7 > 400):
         self.move.linear.x = 0
         self.move.angular.z = 0
@@ -346,6 +385,7 @@ class image_converter:
         self.image_pub.publish(self.move)
 
     elif(self.pedestDetected and self.redlines%2 != 0):
+      # print(11)
       self.pedestDetected = False
       self.redLineDetected = False
       self.twocross = True
@@ -353,6 +393,7 @@ class image_converter:
       self.delay2 = self.delay2 + 1
 
     elif(self.hillSection and not(self.hillDone)):
+      # print(12)
       final = cv2.Canny(binary235, 200,250)
       cty = final[700, 640:]
       g = []
@@ -387,6 +428,7 @@ class image_converter:
         self.image_pub.publish(self.move)
 
     else:
+      #print(cX)
       if(cX < lthresh or cY > ythresh):
           self.move.linear.x = 0
           self.move.angular.z = self.leftTurnspeed#1#0.5
