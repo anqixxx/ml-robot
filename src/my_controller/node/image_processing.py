@@ -151,7 +151,6 @@ if img3 is not None:
     # plate_4 = img3.crop((701, 661, 817, 747))
     plate_4 = img3[660:744, 698:811]
     plate_4 = cv2.resize(plate_4, (100,160))
-    plt.imshow(plate_4, 'gray'),plt.show()
     plate_name += str(find_plate(tf.expand_dims(plate_4, axis=-1), type='n'))
     print(plate_name)
 

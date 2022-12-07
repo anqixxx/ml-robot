@@ -1,10 +1,10 @@
 <launch>
    <!-- My Package launch file -->
-   <!-- <node pkg="my_controller"
+   <node pkg="my_controller"
          type="SIFT.py"
          name="SIFT" 
          output="screen">
-   </node> -->
+   </node>
    
    <!-- <node pkg="my_controller"
          type="count_images.py"
@@ -30,12 +30,12 @@
          output="screen">
    </node> -->
 
-    <node pkg="my_controller"
+    <!-- <node pkg="my_controller"
          type="image_processing.py"
          name="image_processing" 
          output="screen">
    </node>
-   
+    -->
    <!-- <node pkg="my_controller"
          type="vector_encoding.py"
          name="vector_encoding" 

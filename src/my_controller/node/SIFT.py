@@ -14,6 +14,8 @@ from geometry_msgs.msg import Twist
 from cv_bridge import CvBridge, CvBridgeError
 import matplotlib.pyplot as plt
 from numpy.linalg import inv
+import tensorflow as tf
+from tensorflow import keras
 
 ## The constructor creates a subsciber that subscribes to the camera feed
 #  The subscriber takes in a callback function as a parameter which 
@@ -30,6 +32,14 @@ class image_converter:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
+        
+        file_name = '/home/fizzer/ros_ws/src/my_controller/node/plate_cnn'
+        assert os.path.exists(file_name)
+        self.plate_model = keras.models.load_model(file_name)
+
+        file_name = '/home/fizzer/ros_ws/src/my_controller/node/location_cnn'
+        assert os.path.exists(file_name)
+        self.location_model = keras.models.load_model(file_name)
 
     def count(self):
         # folder path
@@ -42,21 +52,47 @@ class image_converter:
         print("Count is {}".format(count))
         return(count+1)
 
+    def plate_hot_rev(index):
+        # List to allow maping from character to row numbers
+        one_hot_map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+        return one_hot_map[index]
 
+    # Finds plate numbers in data set 
+    def find_plate(self, img, type):
+        img_aug = np.expand_dims(img, axis=0)
+        y_predict = self.plate_model.predict(img_aug)[0]
+        if (type == 'a'):
+            y_predict[26:]= [0 for y_val in y_predict[26:]] # Set 1234567890 to none
+        if (type == 'n'):
+            y_predict[0:25]= [0 for y_val in y_predict[0:25]] # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ to zero
+        return (plate_hot_rev(int(y_predict.argmax())))
+
+    def location_hot_rev(index):
+        # List to allow mapping from character to row numbers
+        one_hot_map = "12345678"
+        return one_hot_map[index]
+
+    # Finds location in data set
+    def find_location(self, img):
+        img_aug = np.expand_dims(img, axis=0)
+        y_predict = self.location_model.predict(img_aug)[0]
+        return (location_hot_rev(int(y_predict.argmax())))
+    
     def callback(self,data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
         
-        MIN_MATCH_COUNT = 7
+        MIN_MATCH_COUNT = 12
 
         file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
         assert os.path.exists(file_name1)
 
         img1 = cv2.imread(file_name1, 0)          # queryImage
         img2 = cv_image    # trainImage
-
+        img3 = None
+        
         # Initiate SIFT detector
         sift = cv2.SIFT_create()
         # Gets keypoints and descriptors of key frame image
@@ -88,41 +124,37 @@ class image_converter:
                 invM = np.linalg.inv(M)
                 img3 = cv2.warpPerspective(img2, invM, (w, h))
 
-                # plt.imshow(img3, 'gray'),plt.show()
-
         if img3 is not None:
+            plt.imshow(img3, 'gray'),plt.show()
+            ret,img3 = cv2.threshold(img3,65,255,cv2.THRESH_BINARY)
+            img3 = img3/255
+
+            plate_name = 'P'
+
             # Find location
-            # in openCV: cropped = img[start_row:end_row, start_col:end_col]
-            # location = img3[367:535, 560:848]
-            # plt.imshow(location, 'gray'),plt.show()
-
-            # # Find plate, proper cuts
-            # plate_1 = img3[661:747, 247:362]
-            # plt.imshow(plate_1, 'gray'),plt.show()
-
-            # plate_2 = img3[661:747, 362:478]
-            # plt.imshow(plate_2, 'gray'),plt.show()
-
-            # plate_3 = img3[661:747, 583:698]
-            # plt.imshow(plate_3, 'gray'),plt.show()
-
-            # plate_4 = img3[661:747, 698:813]
-            # plt.imshow(plate_4, 'gray'),plt.show()
-            location = img3[367:535, 560:848]
-            plt.imshow(location, 'gray'),plt.show()
-
+            location = img3[369:522, 569:840]
+            location = cv2.resize(location, (220,302))
+            plate_name += str(find_location(tf.expand_dims(location, axis=-1)))
+            plate_name += '_'
+            
             # Find plate
-            plate_1 = img3[661:747, 247:362]
-            plt.imshow(plate_1, 'gray'),plt.show()
+            plate_1 = img3[660:744, 250:362]
+            plate_1 = cv2.resize(plate_1, (100,160))
+            plate_name += str(find_plate(tf.expand_dims(plate_1, axis=-1), type='a'))
 
-            plate_2 = img3[661:747, 362:478]
-            plt.imshow(plate_2, 'gray'),plt.show()
 
-            plate_3 = img3[661:747, 583:698]
-            plt.imshow(plate_3, 'gray'),plt.show()
+            plate_2 = img3[660:744, 362:475]
+            plate_2 = cv2.resize(plate_2, (100,160))
+            plate_name += str(find_plate(tf.expand_dims(plate_2, axis=-1), type='a'))
 
-            plate_4 = img3[661:747, 698:813]
-            plt.imshow(plate_4, 'gray'),plt.show()
+            plate_3 = img3[660:744, 586:698]
+            plate_3 = cv2.resize(plate_3, (100,160))
+            plate_name += str(find_plate(tf.expand_dims(plate_3, axis=-1), type='n'))
+
+            plate_4 = img3[660:744, 698:811]
+            plate_4 = cv2.resize(plate_4, (100,160))
+            plate_name += str(find_plate(tf.expand_dims(plate_4, axis=-1), type='n'))
+            print(plate_name)
 
         else:
             print( "Not enough matches are found - {}/{}".format(len(good), MIN_MATCH_COUNT) )
