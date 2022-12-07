@@ -116,9 +116,8 @@ for path in os.scandir(dir_path):
         assert os.path.exists(file_name)
         # print(file_name)
         im = cv2.imread(file_name, 0)
-        plt.imshow(im, 'gray'),plt.show()
         im = cv2.GaussianBlur(im,(7,7),cv2.BORDER_DEFAULT)
-        ret,im = cv2.threshold(img,65,255,cv2.THRESH_BINARY)
+        ret,im = cv2.threshold(im,127,255,cv2.THRESH_BINARY)
         plt.imshow(im, 'gray'),plt.show()
 
         plate_name = str(path.name)
@@ -160,7 +159,7 @@ X_dataset = tf.expand_dims(X_dataset, axis=-1)
 Y_dataset = convert_to_one_hot(Y_dataset_orig, NUMBER_OF_LABELS).T
 
 # Model definition
-file_name = '/home/fizzer/ros_ws/src/my_controller/node/'
+file_name = '/home/fizzer/ros_ws/src/my_controller/node/plate_cnn'
 assert os.path.exists(file_name)
 conv_model = keras.models.load_model(file_name)
 
@@ -171,7 +170,7 @@ history_conv = conv_model.fit(X_dataset, Y_dataset,
                               batch_size=16) 
                               # Every time you do a training set, how many examples from the data you take
 
-conv_model.save('/home/fizzer/ros_ws/src/my_controller/node/')
+conv_model.save('/home/fizzer/ros_ws/src/my_controller/node/plate_cnn')
 
 # Model Loss
 plt.plot(history_conv.history['loss'])

@@ -34,46 +34,29 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend
 
 
-# From https://stackoverflow.com/questions/44650888/resize-an-image-without-distortion-opencv
-def resize_image(img, size=(100,160)):
-
-    h, w = img.shape[:2]
-    c = img.shape[2] if len(img.shape)>2 else 1
-
-    if h == w: 
-        return cv2.resize(img, size, cv2.INTER_AREA)
-
-    dif = h if h > w else w
-
-    interpolation = cv2.INTER_AREA if dif > (size[0]+size[1])//2 else cv2.INTER_CUBIC
-
-    x_pos = (dif - w)//2
-    y_pos = (dif - h)//2
-
-    if len(img.shape) == 2:
-        mask = np.ones((dif, dif), dtype=img.dtype)
-        mask[y_pos:y_pos+h, x_pos:x_pos+w] = img[:h, :w]
-    else:
-        mask = np.ones((dif, dif, c), dtype=img.dtype)
-        mask[y_pos:y_pos+h, x_pos:x_pos+w, :] = img[:h, :w, :]
-
-    return cv2.resize(mask, size, interpolation)
 def one_hot_rev(index):
   # List to allow maping from character to row numbers
   one_hot_map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
   return one_hot_map[index]
 
 # Display images in the training data set. 
-def displayImage(img):
+def displayImage(img, type):
   img_aug = np.expand_dims(img, axis=0)
   y_predict = conv_model.predict(img_aug)[0]
-  
-  plt.imshow(tf.squeeze( img))
+  print(y_predict)
+  if (type == 'l'):
+    # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ and 90 to zero
+    y_predict[0:25] = [0 for y_val in y_predict[0:25]]
+    y_predict[-2:]= [0 for y_val in y_predict[-2:]]
+  if (type == 'a'):
+    y_predict[26:]= [0 for y_val in y_predict[26:]] # Set 1234567890 to none
+  if (type == 'n'):
+    y_predict[0:25]= [0 for y_val in y_predict[0:25]] # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ to zero
   print(y_predict)
   return (one_hot_rev(int(y_predict.argmax())))
 
 
-file_name = '/home/fizzer/ros_ws/src/my_controller/node/'
+file_name = '/home/fizzer/ros_ws/src/my_controller/node/plate_cnn'
 assert os.path.exists(file_name)
 conv_model = keras.models.load_model(file_name)
 
@@ -120,11 +103,6 @@ if len(good)>MIN_MATCH_COUNT:
         invM = np.linalg.inv(M)
         img3 = cv2.warpPerspective(img2, invM, (w, h))
 
-        # plt.imshow(img3, 'gray'),plt.show()
-        # Cannot implement unless adaptive thresholding is used
-        # ret,img3 = cv2.threshold(img3,110,255,cv2.THRESH_BINARY)
-        # plt.imshow(img3, 'gray'),plt.show()
-
 if img3 is not None:
     plt.imshow(img3, 'gray'),plt.show()
     ret,img3 = cv2.threshold(img3,65,255,cv2.THRESH_BINARY)
@@ -135,37 +113,38 @@ if img3 is not None:
 
     # Find location
     # location = img3[564:368, 848:535]
-    location = img3[350:550, 560:848]
+    location = img3[349:534, 560:848]
     location = cv2.resize(location, (100,160))
     plt.imshow(location, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(location, axis=-1)))
+    plate_name += str(displayImage(tf.expand_dims(location, axis=-1), type='l'))
     plate_name += '_'
     
     # Find plate
     # plate_1 = img3.crop((247, 661, 362, 747))
-    plate_1 = img3[650:750, 247:362]
+    # y from math
+    plate_1 = img3[660:744, 250:362]
     plate_1 = cv2.resize(plate_1, (100,160))
     plt.imshow(plate_1, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_1, axis=-1)))
+    plate_name += str(displayImage(tf.expand_dims(plate_1, axis=-1), type='a'))
 
 
     # plate_2 = img3.crop((326, 661, 478, 747))
-    plate_2 = img3[650:750, 362:478]
+    plate_2 = img3[660:744, 362:475]
     plate_2 = cv2.resize(plate_2, (100,160))
     plt.imshow(plate_2, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_2, axis=-1)))
+    plate_name += str(displayImage(tf.expand_dims(plate_2, axis=-1), type='a'))
 
     # plate_3 = img3.crop((590, 661, 701, 747))
-    plate_3 = img3[650:750, 583:698]
+    plate_3 = img3[660:744, 586:698]
     plate_3 = cv2.resize(plate_3, (100,160))
     plt.imshow(plate_3, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_3, axis=-1)))
+    plate_name += str(displayImage(tf.expand_dims(plate_3, axis=-1), type='n'))
 
     # plate_4 = img3.crop((701, 661, 817, 747))
-    plate_4 = img3[650:750, 698:813]
+    plate_4 = img3[660:744, 698:811]
     plate_4 = cv2.resize(plate_4, (100,160))
     plt.imshow(plate_4, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_4, axis=-1)))
+    plate_name += str(displayImage(tf.expand_dims(plate_4, axis=-1), type='n'))
     print(plate_name)
 
 
