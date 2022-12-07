@@ -117,59 +117,31 @@ for path in os.scandir(dir_path):
         # print(file_name)
         im = cv2.imread(file_name, 0)
         im = cv2.GaussianBlur(im,(7,7),cv2.BORDER_DEFAULT)
-        # plt.imshow(im, 'gray'),plt.show()
-        # so we knowh the name of the plate
-        # name is 11 letters long
-        # last 4 are .png
-        # first is P
-        # take last 10 to last 4
-        # string[ start_index_pos: end_index_pos: step_size]
-        # jk path is in form P7_YS59.png
+        ret,img = cv2.threshold(img,65,255,cv2.THRESH_BINARY)
+
         plate_name = str(path.name)
-        print(plate_name)
-
-        # section off first image 
-        # label_loc = one_hot_label(plate_name[1])
-        # location = im[140:449, 340:570]
-        # location = resize_image(location, (160, 100))
-        # # plt.imshow(location, 'gray'),plt.show()
-        # # location = im.crop((400, 140, 550, 449))
-        # # imgplot = plt.imshow(image_1) # image
-        # temp_tuple = [np.array(location), label_loc]
-        # all_dataset.append(tuple(temp_tuple))
-
-    
         label_1 = one_hot_label(plate_name[3])
-        # print(label_1)
-        # image_1 = im.crop((48, 728, 148, 877))
+
         image_1 = im[725:885, 48:148]
         # plt.imshow(image_1, 'gray'),plt.show()
-        # print(image_1)
-        # imgplot = plt.imshow(image_1) # image
         temp_tuple = [np.array(image_1), label_1]
         all_dataset.append(tuple(temp_tuple))
 
         label_2 = one_hot_label(plate_name[4])
-        # image_2 = im.crop((149, 728, 249, 877))
         image_2 = im[725:885, 149:249]
         # plt.imshow(image_2, 'gray'),plt.show()
-        # imgplot = plt.imshow(image_2) # image
         temp_tuple = [np.array(image_2), label_2]
         all_dataset.append(tuple(temp_tuple))
 
         label_3 = one_hot_label(plate_name[5])
-        # image_3 = im.crop((351, 728, 451, 877))
         image_3 = im[725:885, 351:451]
         # plt.imshow(image_3, 'gray'),plt.show()
-        # imgplot = plt.imshow(image_3) # image
         temp_tuple = [np.array(image_3), label_3]
         all_dataset.append(tuple(temp_tuple))
 
         label_4 = one_hot_label(plate_name[6])
-        # image_4 = im.crop((452, 728, 552, 877))
         image_4 = im[725:885, 452:552]
         # plt.imshow(image_4, 'gray'),plt.show()
-        # imgplot = plt.imshow(image_4) # image
         temp_tuple = [np.array(image_4), label_4]
         all_dataset.append(tuple(temp_tuple))
     
@@ -179,38 +151,16 @@ X_dataset_orig = np.array([data[0] for data in all_dataset[:]])
 Y_dataset_orig = np.array([[data[1]] for data in all_dataset])
 
 # X is examples, Y is labels for the examples
-
 # Normalize X (images) dataset
 X_dataset = (X_dataset_orig/255)
-plt.imshow(X_dataset[6], 'gray'),plt.show()
 X_dataset = tf.expand_dims(X_dataset, axis=-1)
 
 Y_dataset = convert_to_one_hot(Y_dataset_orig, NUMBER_OF_LABELS).T
-# print(Y_dataset)
-# print(X_dataset)
 
 # Model definition
-conv_model = models.Sequential()
-conv_model.add(layers.Conv2D(32, (3, 3), activation='relu',
-                             input_shape=(160, 100, 1)))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Flatten())
-conv_model.add(layers.Dropout(0.5))
-conv_model.add(layers.Dense(512, activation='relu'))
-conv_model.add(layers.Dense(36, activation='softmax')) # Amount of labels, ie. things we are trying to classify
-
-conv_model.summary()
-LEARNING_RATE = 1e-4 # How fast we are changing the gradient
-conv_model.compile(loss='categorical_crossentropy',
-                   optimizer=optimizers.RMSprop(lr=LEARNING_RATE),
-                   metrics=['acc'])
-# Metrics is like eval critera, in this case acc is accuracy, we want to track this
+file_name = '/home/fizzer/ros_ws/src/my_controller/node/'
+assert os.path.exists(file_name)
+conv_model = keras.models.load_model(file_name)
 
 VALIDATION_SPLIT = .2 # used to validate dataset
 history_conv = conv_model.fit(X_dataset, Y_dataset, 
@@ -220,6 +170,7 @@ history_conv = conv_model.fit(X_dataset, Y_dataset,
                               # Every time you do a training set, how many examples from the data you take
 
 conv_model.save('/home/fizzer/ros_ws/src/my_controller/node/')
+
 # Model Loss
 plt.plot(history_conv.history['loss'])
 plt.plot(history_conv.history['val_loss'])
@@ -238,5 +189,3 @@ plt.xlabel('epoch')
 plt.legend(['train accuracy', 'val accuracy'], loc='upper left')
 plt.show()
 
-
-displayImage(6)

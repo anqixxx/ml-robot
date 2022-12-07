@@ -70,7 +70,7 @@ def displayImage(img):
   
   plt.imshow(tf.squeeze( img))
   print(y_predict)
-  print(one_hot_rev(int(y_predict.argmax())))
+  return (one_hot_rev(int(y_predict.argmax())))
 
 
 file_name = '/home/fizzer/ros_ws/src/my_controller/node/'
@@ -126,54 +126,48 @@ if len(good)>MIN_MATCH_COUNT:
         # plt.imshow(img3, 'gray'),plt.show()
 
 if img3 is not None:
+    ret,img3 = cv2.threshold(img3,65,255,cv2.THRESH_BINARY)
+    plt.imshow(img3, 'gray'),plt.show()
     img3 = img3/255
+
+    plate_name = 'P'
+
     # Find location
-    #x1,y1,x2,y2
-    # in openCV: cropped = img[start_row:end_row, start_col:end_col]
     # location = img3[564:368, 848:535]
     location = img3[350:550, 560:848]
-    # location = resize_image(location, (100,160))
     location = cv2.resize(location, (100,160))
     plt.imshow(location, 'gray'),plt.show()
+    plate_name += str(displayImage(tf.expand_dims(location, axis=-1)))
+    plate_name += '_'
     
-    displayImage(tf.expand_dims(location, axis=-1))
-    # Test code for cnn, ignore
-    # img_aug = np.expand_dims(location, axis=0)
-    # y_predict = conv_model.predict(img_aug)[0] # defined in CNN
-    # print(one_hot_rev(int(y_predict. argmax())))
-
-
     # Find plate
     # plate_1 = img3.crop((247, 661, 362, 747))
     plate_1 = img3[650:750, 247:362]
-    # plate_1 = resize_image(plate_1, (100,160))
     plate_1 = cv2.resize(plate_1, (100,160))
-
     plt.imshow(plate_1, 'gray'),plt.show()
-    displayImage(tf.expand_dims(plate_1, axis=-1))
+    plate_name += str(displayImage(tf.expand_dims(plate_1, axis=-1)))
 
 
     # plate_2 = img3.crop((326, 661, 478, 747))
     plate_2 = img3[650:750, 362:478]
     plate_2 = cv2.resize(plate_2, (100,160))
-
-    # plate_2 = resize_image(plate_2, (100, 160))
     plt.imshow(plate_2, 'gray'),plt.show()
-    displayImage(tf.expand_dims(plate_2, axis=-1))
+    plate_name += str(displayImage(tf.expand_dims(plate_2, axis=-1)))
 
     # plate_3 = img3.crop((590, 661, 701, 747))
     plate_3 = img3[650:750, 583:698]
     plate_3 = cv2.resize(plate_3, (100,160))
-
-    # plate_3 = resize_image(plate_3, (100, 160))
     plt.imshow(plate_3, 'gray'),plt.show()
-    displayImage(tf.expand_dims(plate_3, axis=-1))
+    plate_name += str(displayImage(tf.expand_dims(plate_3, axis=-1)))
 
     # plate_4 = img3.crop((701, 661, 817, 747))
     plate_4 = img3[650:750, 698:813]
-    # plate_4 = resize_image(plate_4, (100, 160))
     plate_4 = cv2.resize(plate_4, (100,160))
-
     plt.imshow(plate_4, 'gray'),plt.show()
-    displayImage(tf.expand_dims(plate_4, axis=-1))
+    plate_name += str(displayImage(tf.expand_dims(plate_4, axis=-1)))
+    print(plate_name)
+
+
+
+
 
