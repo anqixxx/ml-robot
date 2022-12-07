@@ -84,7 +84,7 @@ assert os.path.exists(file_name2)
 
 img1 = cv2.imread(file_name1, 0)          # queryImage
 img2 = cv2.imread(file_name2, 0)      # trainImage, ONLY FOR TESTING
-
+img3 = None
 # plt.imshow(img1, 'gray'),plt.show()
 plt.imshow(img2, 'gray'),plt.show()
 
@@ -100,12 +100,12 @@ flann = cv2.FlannBasedMatcher(index_params, search_params)
 matches = flann.knnMatch(des1,des2,k=2)
 # store all the good matches as per Lowe's ratio test.
 good = []
-MIN_MATCH_COUNT = 7
+MIN_MATCH_COUNT = 12
 for m,n in matches:
     if m.distance < 0.7*n.distance:
         good.append(m)
 
-# print(len(good))
+print(len(good))
 if len(good)>MIN_MATCH_COUNT:
     src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
     dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
@@ -126,6 +126,7 @@ if len(good)>MIN_MATCH_COUNT:
         # plt.imshow(img3, 'gray'),plt.show()
 
 if img3 is not None:
+    plt.imshow(img3, 'gray'),plt.show()
     ret,img3 = cv2.threshold(img3,65,255,cv2.THRESH_BINARY)
     plt.imshow(img3, 'gray'),plt.show()
     img3 = img3/255

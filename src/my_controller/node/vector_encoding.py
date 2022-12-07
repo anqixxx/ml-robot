@@ -116,32 +116,34 @@ for path in os.scandir(dir_path):
         assert os.path.exists(file_name)
         # print(file_name)
         im = cv2.imread(file_name, 0)
+        plt.imshow(im, 'gray'),plt.show()
         im = cv2.GaussianBlur(im,(7,7),cv2.BORDER_DEFAULT)
-        ret,img = cv2.threshold(img,65,255,cv2.THRESH_BINARY)
+        ret,im = cv2.threshold(img,65,255,cv2.THRESH_BINARY)
+        plt.imshow(im, 'gray'),plt.show()
 
         plate_name = str(path.name)
         label_1 = one_hot_label(plate_name[3])
 
         image_1 = im[725:885, 48:148]
-        # plt.imshow(image_1, 'gray'),plt.show()
+        plt.imshow(image_1, 'gray'),plt.show()
         temp_tuple = [np.array(image_1), label_1]
         all_dataset.append(tuple(temp_tuple))
 
         label_2 = one_hot_label(plate_name[4])
         image_2 = im[725:885, 149:249]
-        # plt.imshow(image_2, 'gray'),plt.show()
+        plt.imshow(image_2, 'gray'),plt.show()
         temp_tuple = [np.array(image_2), label_2]
         all_dataset.append(tuple(temp_tuple))
 
         label_3 = one_hot_label(plate_name[5])
         image_3 = im[725:885, 351:451]
-        # plt.imshow(image_3, 'gray'),plt.show()
+        plt.imshow(image_3, 'gray'),plt.show()
         temp_tuple = [np.array(image_3), label_3]
         all_dataset.append(tuple(temp_tuple))
 
         label_4 = one_hot_label(plate_name[6])
         image_4 = im[725:885, 452:552]
-        # plt.imshow(image_4, 'gray'),plt.show()
+        plt.imshow(image_4, 'gray'),plt.show()
         temp_tuple = [np.array(image_4), label_4]
         all_dataset.append(tuple(temp_tuple))
     

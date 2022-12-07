@@ -30,7 +30,6 @@ class image_converter:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw", Image ,self.callback)
         self.rate = rospy.Rate(2)
-        self.i = 415
 
     def count(self):
         # folder path
