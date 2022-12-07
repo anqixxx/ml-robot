@@ -133,13 +133,13 @@ class image_converter:
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
     # print("Okay")
-    print(M["m00"], "This is it, hopefully, faithfully -----------------------")
+    # print(M["m00"], "This is it, hopefully, faithfully -----------------------")
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
     if(self.eightCount > 262 and self.eightCount < 290):
       cX = cX-125
-      print("we are now changing the center of masss hopefully this works.", self.eightCount)
+      # print("we are now changing the center of masss hopefully this works.", self.eightCount)
 
     ret,bin9 = cv2.threshold(newerim,31,255, cv2.THRESH_BINARY_INV)
     ret,bin10 = cv2.threshold(newerim,28,255, cv2.THRESH_BINARY_INV)
@@ -170,7 +170,7 @@ class image_converter:
 
     if (self.startChecking):
       if(M["m00"] > 85000000):
-        print(M["m00"], "it is greater")
+        # print(M["m00"], "it is greater")
         self.intersectDetect = True
         self.startChecking = False
 
@@ -181,7 +181,7 @@ class image_converter:
         self.startdelay = False
         self.startChecking = True
         self.delay2 = 0
-      print("We start now now now now now now now now")
+      # print("We start now now now now now now now now")
 
     if(self.startsubtr):
 
@@ -203,9 +203,9 @@ class image_converter:
         self.secimerg = bin523
         M37 = cv2.moments(finmerg)
         self.captureCount2 = self.captureCount2 + 1
-        print(M37["m00"], "This is itititititititititititititititit!", self.Cy)
+        # print(M37["m00"], "This is itititititititititititititititit!", self.Cy)
         if(self.captureCount > 10 and M37["m00"]>800000):
-          print("Car detected !!!!!!!")
+          # print("Car detected !!!!!!!")
           self.carDetected = True
 
 
@@ -217,13 +217,13 @@ class image_converter:
         redLineDetected = True
         self.redLineDetected = True
         if(self.recordCx):
-          print("abcdefghijklmnopqrstuvwxyz")
+          # print("abcdefghijklmnopqrstuvwxyz")
           self.recordCx = False
           self.Cx = cX
     
     if(self.redLineDetected and not(self.pedestDetected)): ##changed
       imerg = gblur[320:550,self.Cx-125:self.Cx+125]
-      print(type(self.preimerg))
+      # print(type(self.preimerg))
       if(type(self.preimerg) == int):
         self.preimerg = imerg
         self.captureCount = self.captureCount + 1
@@ -231,14 +231,14 @@ class image_converter:
         ret,bin91 = cv2.threshold(imerg,100,255, cv2.THRESH_BINARY)
         ret,bin101 = cv2.threshold(self.preimerg,100,255, cv2.THRESH_BINARY)
         new_imerg = cv2.subtract(bin91,bin101)
-        print(imerg.shape, "lololololololololol")
-        print(self.preimerg.shape, "rtwwewewerwerwrwerew")
+        # print(imerg.shape, "lololololololololol")
+        # print(self.preimerg.shape, "rtwwewewerwerwrwerew")
         self.preimerg = imerg
         M3 = cv2.moments(new_imerg)
         self.captureCount = self.captureCount + 1
-        print(M3["m00"], "yeeeeeeeeeeet!")
+        # print(M3["m00"], "yeeeeeeeeeeet!")
         if(self.reposition and self.captureCount > 4 and M3["m00"]>100000 and not(self.twocross)):
-          print("Pedestrian foundddddddddddddd!")
+          # print("Pedestrian foundddddddddddddd!")
           self.pedestDetected = True
     
     if(self.twocross):
@@ -265,7 +265,7 @@ class image_converter:
     if(self.eightCount > 295):
       self.eightDelay = False
       if (M["m00"] > 85000000):
-        print("We have foundddddddddd the final intersection!!!!!!!!")
+        # print("We have foundddddddddd the final intersection!!!!!!!!")
         self.finalIntersect = True
         self.eightCount = 0
     
@@ -302,13 +302,13 @@ class image_converter:
     lthresh = 600
     rthresh = 680
     ythresh = 650#700
-    print(final.shape)
-    print(cX, cY, "CM!")
+    # print(final.shape)
+    # print(cX, cY, "CM!")
     if(self.finalIntersect):
       self.move.linear.x = 0.175
       self.move.angular.z = 0.95
       self.image_pub.publish(self.move)
-      print("Intersection222222222222 is detected detected detected detected detected detected")
+      # print("Intersection222222222222 is detected detected detected detected detected detected")
       if(self.turnCount23  > 48):
         self.finalIntersect = False
         self.endposition = True
@@ -317,17 +317,17 @@ class image_converter:
       self.move.linear.x = 0
       self.move.angular.z = 0
       self.image_pub.publish(self.move)
-      print("We are done done done done done done done done done done done done")
+      # print("We are done done done done done done done done done done done done")
     elif (self.smalldelay < 10 and self.smalldelay > 0):
       self.move.linear.x = 0
       self.move.angular.z = 0
       self.image_pub.publish(self.move)
-      print("oooooooooooooooops")
+      # print("oooooooooooooooops")
     elif(self.intersectDetect):
       self.move.linear.x = 0.135
       self.move.angular.z = 0.7
       self.image_pub.publish(self.move)
-      print("Intersection is detected detected detected detected detected detected")
+      # print("Intersection is detected detected detected detected detected detected")
       if(self.turnCount  > 48):
         self.intersectDetect = False
         self.intersectStop = True
@@ -345,46 +345,46 @@ class image_converter:
       if(not(self.loopdelay)):
         self.loopdelay = True
         self.recordCx = True
-      print("Intersection is detected detected detected detected detected detected")
+      # print("Intersection is detected detected detected detected detected detected")
     elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 == 0): ##changed
       if (cX7 > 445):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
           self.image_pub.publish(self.move)
-          print("Repositioning")
+          # print("Repositioning")
       elif (cX7 < 444):
           self.move.linear.x = 0
           self.move.angular.z = 0.05
           self.image_pub.publish(self.move)
-          print("Repositioning")
+          # print("Repositioning")
       else:  
           self.move.linear.x = 0
           self.move.angular.z = 0
           self.image_pub.publish(self.move)
           self.reposition = True
-          print("Repositioning")
+          # print("Repositioning")
     elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 != 0): ##changed
       if (cX > 650):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
           self.image_pub.publish(self.move)
-          print("Repositioning Part 2 --------:", self.redlines)
+          # print("Repositioning Part 2 --------:", self.redlines)
       elif (cX < 630):
           self.move.linear.x = 0
           self.move.angular.z = 0.05
           self.image_pub.publish(self.move)
-          print("Repositioning Part 2 --------:", self.redlines)
+          # print("Repositioning Part 2 --------:", self.redlines)
       else:  
           self.move.linear.x = 0
           self.move.angular.z = 0
           self.image_pub.publish(self.move)
           self.reposition = True
-          print("Repositioning Part 2 --------:", self.redlines)
+          # print("Repositioning Part 2 --------:", self.redlines)
     elif(self.redLineDetected and not(self.pedestDetected)): ##changed
         self.move.linear.x = 0
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
-        print("Red Line Detected")
+        # print("Red Line Detected")
     elif(self.pedestDetected and self.redlines%2 == 0):
       if (cY7 > 400):
         self.move.linear.x = 0
@@ -395,19 +395,19 @@ class image_converter:
         self.pedestDetected = False
         self.redLineDetected = False
         self.redlines = self.redlines + 1
-        print("We crossed!!!!!!", cY7)
+        # print("We crossed!!!!!!", cY7)
       else:
         self.move.linear.x = 0.3
         self.move.angular.z = 0
         self.image_pub.publish(self.move)
-        print("Pedest Detected - move move move!!!!!", cY7)
+        # print("Pedest Detected - move move move!!!!!", cY7)
     elif(self.pedestDetected and self.redlines%2 != 0):
       self.pedestDetected = False
       self.redLineDetected = False
       self.twocross = True
       self.startdelay = True
       self.delay2 = self.delay2 + 1
-      print("checked -------------------------------------------- checked", self.redlines)
+      # print("checked -------------------------------------------- checked", self.redlines)
     elif(self.hillSection and not(self.hillDone)):
       final = cv2.Canny(binary235, 200,250)
       cty = final[700, 640:]
@@ -431,40 +431,40 @@ class image_converter:
         self.move.linear.x = 0
         self.move.angular.z = 0.5
         self.image_pub.publish(self.move)
-        print("We are now pushing through the hill section!", vp)
+        # print("We are now pushing through the hill section!", vp)
       elif(vp != -1 and vp > 1050):
         self.move.linear.x = 0
         self.move.angular.z = -0.25
         self.image_pub.publish(self.move)
-        print("We are now pushing through the hill section!", vp)
+        # print("We are now pushing through the hill section!", vp)
       else:
         self.move.linear.x = 0.2
         self.move.angular.z = 0.10
         self.image_pub.publish(self.move)
-        print("We are now pushing through the hill section!", vp)
+        # print("We are now pushing through the hill section!", vp)
     else:
-      print("ohhhhhh yeahahahahaahahahha", cX7, "y:", cY7)
+      # print("ohhhhhh yeahahahahaahahahha", cX7, "y:", cY7)
       if(cX < lthresh or cY > ythresh):
           self.move.linear.x = 0
           self.move.angular.z = self.leftTurnspeed#1#0.5
           self.image_pub.publish(self.move)
-          print("move left")
+          # print("move left")
       elif(cX > rthresh):
           self.move.linear.x = 0
           self.move.angular.z = self.rightTurnspeed#-1#-0.5 #neg
           self.image_pub.publish(self.move)
-          print("move right")
+          # print("move right")
       else:
           self.move.linear.x = self.forwardSpeed #0.2#0.075
           self.move.angular.z = 0
           self.image_pub.publish(self.move)
-          print("forward")
+          # print("forward")
 
     #Display camera image with center of mass dot to check functionality
     #cv2.imshow("Image", new_imerg)
     #print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
 
-    cv2.imshow("Image window", final)#bin5)
+    # cv2.imshow("Image window", final)#bin5)
     cv2.waitKey(3)
 
 ## The main function for running the image converter to robot movement

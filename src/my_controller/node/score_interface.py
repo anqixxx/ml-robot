@@ -16,13 +16,10 @@ rospy.init_node('topic_publisher')
 pub = rospy.Publisher("license_plate", String, queue_size=1)
 time.sleep(1)
 
-rate = rospy.Rate(1)
-
 pub.publish("team11, team11,0,0000")
 print("Timer started at {} for Team 11".format(time.time))
-time.sleep(10)
+time.sleep(240)
 
-location = "-1"
 pub.publish("team11, team11,-1,0000")
 print("Timer ended at {} for Team 11".format(time.time))
 time.sleep(1)

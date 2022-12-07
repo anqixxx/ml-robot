@@ -1,17 +1,17 @@
 <launch>
    <!-- My Package launch file -->
    <node pkg="my_controller"
-         type="PID.py"
-         name="PID" 
-         output="screen">
-   </node>
-   
-   <node pkg="my_controller"
          type="SIFT.py"
          name="SIFT" 
          output="screen">
    </node>
-   
+
+   <node pkg="my_controller"
+         type="PID.py"
+         name="PID" 
+         output="screen">
+   </node>
+
    <!-- <node pkg="my_controller"
          type="score_interface.py"
          name="score_interface" 
