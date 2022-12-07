@@ -116,7 +116,7 @@ conv_model.compile(loss='categorical_crossentropy',
 VALIDATION_SPLIT = .2 # used to validate dataset
 history_conv = conv_model.fit(X_dataset, Y_dataset, 
                               validation_split=VALIDATION_SPLIT, 
-                              epochs=80, # Epoch is one full iteration of the dataset
+                              epochs=40, # Epoch is one full iteration of the dataset
                               batch_size=16) 
                               # Every time you do a training set, how many examples from the data you take
 

@@ -30,20 +30,20 @@
          output="screen">
    </node> -->
 
-    <!-- <node pkg="my_controller"
+    <node pkg="my_controller"
          type="image_processing.py"
          name="image_processing" 
          output="screen">
-   </node> -->
+   </node>
    
    <!-- <node pkg="my_controller"
          type="vector_encoding.py"
          name="vector_encoding" 
          output="screen">
    </node> -->
-   <node pkg="my_controller"
+   <!-- <node pkg="my_controller"
          type="location_cnn.py"
          name="location_cnn" 
          output="screen">
-   </node>
+   </node> -->
 </launch>

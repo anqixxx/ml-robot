@@ -34,31 +34,39 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend
 
 
-def one_hot_rev(index):
+def plate_hot_rev(index):
   # List to allow maping from character to row numbers
   one_hot_map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
   return one_hot_map[index]
 
-# Display images in the training data set. 
-def displayImage(img, type):
+# Finds plate numbers in data set 
+def find_plate(img, type):
   img_aug = np.expand_dims(img, axis=0)
-  y_predict = conv_model.predict(img_aug)[0]
-  print(y_predict)
-  if (type == 'l'):
-    # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ and 90 to zero
-    y_predict[0:25] = [0 for y_val in y_predict[0:25]]
-    y_predict[-2:]= [0 for y_val in y_predict[-2:]]
+  y_predict = plate_model.predict(img_aug)[0]
   if (type == 'a'):
     y_predict[26:]= [0 for y_val in y_predict[26:]] # Set 1234567890 to none
   if (type == 'n'):
     y_predict[0:25]= [0 for y_val in y_predict[0:25]] # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ to zero
-  print(y_predict)
-  return (one_hot_rev(int(y_predict.argmax())))
+  return (plate_hot_rev(int(y_predict.argmax())))
 
+def location_hot_rev(index):
+  # List to allow maping from character to row numbers
+  one_hot_map = "12345678"
+  return one_hot_map[index]
+
+# Finds location in data set
+def find_location(img):
+  img_aug = np.expand_dims(img, axis=0)
+  y_predict = location_model.predict(img_aug)[0]
+  return (location_hot_rev(int(y_predict.argmax())))
 
 file_name = '/home/fizzer/ros_ws/src/my_controller/node/plate_cnn'
 assert os.path.exists(file_name)
-conv_model = keras.models.load_model(file_name)
+plate_model = keras.models.load_model(file_name)
+
+file_name = '/home/fizzer/ros_ws/src/my_controller/node/location_cnn'
+assert os.path.exists(file_name)
+location_model = keras.models.load_model(file_name)
 
 file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
 assert os.path.exists(file_name1)
@@ -113,10 +121,10 @@ if img3 is not None:
 
     # Find location
     # location = img3[564:368, 848:535]
-    location = img3[349:534, 560:848]
-    location = cv2.resize(location, (100,160))
+    location = img3[369:522, 569:840]
+    location = cv2.resize(location, (220,302))
     plt.imshow(location, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(location, axis=-1), type='l'))
+    plate_name += str(find_location(tf.expand_dims(location, axis=-1)))
     plate_name += '_'
     
     # Find plate
@@ -125,26 +133,26 @@ if img3 is not None:
     plate_1 = img3[660:744, 250:362]
     plate_1 = cv2.resize(plate_1, (100,160))
     plt.imshow(plate_1, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_1, axis=-1), type='a'))
+    plate_name += str(find_plate(tf.expand_dims(plate_1, axis=-1), type='a'))
 
 
     # plate_2 = img3.crop((326, 661, 478, 747))
     plate_2 = img3[660:744, 362:475]
     plate_2 = cv2.resize(plate_2, (100,160))
     plt.imshow(plate_2, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_2, axis=-1), type='a'))
+    plate_name += str(find_plate(tf.expand_dims(plate_2, axis=-1), type='a'))
 
     # plate_3 = img3.crop((590, 661, 701, 747))
     plate_3 = img3[660:744, 586:698]
     plate_3 = cv2.resize(plate_3, (100,160))
     plt.imshow(plate_3, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_3, axis=-1), type='n'))
+    plate_name += str(find_plate(tf.expand_dims(plate_3, axis=-1), type='n'))
 
     # plate_4 = img3.crop((701, 661, 817, 747))
     plate_4 = img3[660:744, 698:811]
     plate_4 = cv2.resize(plate_4, (100,160))
     plt.imshow(plate_4, 'gray'),plt.show()
-    plate_name += str(displayImage(tf.expand_dims(plate_4, axis=-1), type='n'))
+    plate_name += str(find_plate(tf.expand_dims(plate_4, axis=-1), type='n'))
     print(plate_name)
 
 
