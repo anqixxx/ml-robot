@@ -53,6 +53,28 @@ class image_converter:
     self.startdelay = False
     self.delay2 = 0
     self.twocross = False
+    self.startChecking = False
+    self.intersectDetect = False
+    self.turnCount = 0
+    self.intersectStop = False
+    self.startsubtr = False
+    self.loopdelay = False
+    self.Cy = 0
+    self.secimerg = 0
+    self.captureCount2 = 0
+    self.carDetected = False
+    self.rightTurnspeed = -1 
+    self.leftTurnspeed = 1
+    self.forwardSpeed = 0.2
+    self.submarine = False
+    self.subcount = 0
+    self.smalldel = False
+    self.smalldelay = 0
+    self.eightDelay = False
+    self.eightCount = 0
+    self.finalIntersect = False
+    self.turnCount23 = 0
+    self.endposition = False
 
   ## The callback function first converts the image to a CV image format
   #  This image is then grayscaled, gaussian blurred, and then thresholded into a binary map
@@ -115,6 +137,10 @@ class image_converter:
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
+    if(self.eightCount > 262 and self.eightCount < 290):
+      cX = cX-125
+      print("we are now changing the center of masss hopefully this works.", self.eightCount)
+
     ret,bin9 = cv2.threshold(newerim,31,255, cv2.THRESH_BINARY_INV)
     ret,bin10 = cv2.threshold(newerim,28,255, cv2.THRESH_BINARY_INV)
     bin11 = cv2.subtract(bin9,bin10)
@@ -142,12 +168,46 @@ class image_converter:
       if (self.delay2 < 500):
         self.delay2 = self.delay2 + 1
 
-    if (self.delay2 > 200):
+    if (self.startChecking):
+      if(M["m00"] > 85000000):
+        print(M["m00"], "it is greater")
+        self.intersectDetect = True
+        self.startChecking = False
+
+    if (self.delay2 > 300):
       if (self.twocross):
         self.redlines = self.redlines + 1
         self.twocross = False
         self.startdelay = False
+        self.startChecking = True
+        self.delay2 = 0
       print("We start now now now now now now now now")
+
+    if(self.startsubtr):
+
+      if(self.recordCx):
+        self.Cy = Cy1
+        self.recordCx = False
+      
+      
+      intersectim1 = gblur[(self.Cy):,:]
+      ret,bin357 = cv2.threshold(intersectim1,85,255, cv2.THRESH_BINARY_INV)
+      ret,bin479 = cv2.threshold(intersectim1,80,255, cv2.THRESH_BINARY_INV)
+      bin523 = cv2.subtract(bin357,bin479)
+
+      if(type(self.secimerg) == int):
+          self.secimerg = bin523
+          self.captureCount2 = self.captureCount2 + 1
+      else:
+        finmerg = cv2.subtract(bin523,self.secimerg)
+        self.secimerg = bin523
+        M37 = cv2.moments(finmerg)
+        self.captureCount2 = self.captureCount2 + 1
+        print(M37["m00"], "This is itititititititititititititititit!", self.Cy)
+        if(self.captureCount > 10 and M37["m00"]>800000):
+          print("Car detected !!!!!!!")
+          self.carDetected = True
+
 
 
     if(M2["m00"] != 0):
@@ -188,6 +248,36 @@ class image_converter:
     if(self.pedestDetected):
       print("Let's gooooooooooooooo1312123123")
 
+    if(self.submarine):
+      self.subcount = self.subcount + 1
+    
+    if(self.subcount > 20):
+      self.subcount = 0
+      self.submarine = False
+      self.rightTurnspeed = self.rightTurnspeed  - 0.25
+      self.leftTurnspeed = self.leftTurnspeed + 0.25
+      self.forwardSpeed = self.forwardSpeed + 0.15
+      self.eightDelay = True
+
+    if (self.eightDelay):
+      self.eightCount = self.eightCount + 1
+    
+    if(self.eightCount > 295):
+      self.eightDelay = False
+      if (M["m00"] > 85000000):
+        print("We have foundddddddddd the final intersection!!!!!!!!")
+        self.finalIntersect = True
+        self.eightCount = 0
+    
+
+    if(self.smalldel):
+      self.smalldelay = self.smalldelay + 1
+
+    if(self.smalldelay > 12):
+      self.smalldel = False
+
+
+
     #if(M["m00"] < self.min):
     #  self.min = M["m00"]
     #self.min = self.min + 1
@@ -196,6 +286,8 @@ class image_converter:
     # Draw a circle at the center of mass coordinates for checking functionality
     final1 = cv2.circle(cv_image,(cXX,cYY),15,(255,0,0),cv2.FILLED)
     final = cv2.circle(final1,(self.Cx,cY),15,(255,0,0),cv2.FILLED)
+    if(self.startsubtr):
+      final = finmerg
     #final = cv2.circle(final,(cX9,cY9),15,(255,0,0),cv2.FILLED)
 
     #final = cv2.rectangle(final2,(cX-125,320),(cX+125,550),(255,0,0),cv2.FILLED)
@@ -212,7 +304,49 @@ class image_converter:
     ythresh = 650#700
     print(final.shape)
     print(cX, cY, "CM!")
-    if(self.redLineDetected and not(self.reposition) and self.redlines % 2 == 0): ##changed
+    if(self.finalIntersect):
+      self.move.linear.x = 0.175
+      self.move.angular.z = 0.95
+      self.image_pub.publish(self.move)
+      print("Intersection222222222222 is detected detected detected detected detected detected")
+      if(self.turnCount23  > 48):
+        self.finalIntersect = False
+        self.endposition = True
+      self.turnCount23 = self.turnCount23 + 1
+    elif(self.endposition):
+      self.move.linear.x = 0
+      self.move.angular.z = 0
+      self.image_pub.publish(self.move)
+      print("We are done done done done done done done done done done done done")
+    elif (self.smalldelay < 10 and self.smalldelay > 0):
+      self.move.linear.x = 0
+      self.move.angular.z = 0
+      self.image_pub.publish(self.move)
+      print("oooooooooooooooops")
+    elif(self.intersectDetect):
+      self.move.linear.x = 0.135
+      self.move.angular.z = 0.7
+      self.image_pub.publish(self.move)
+      print("Intersection is detected detected detected detected detected detected")
+      if(self.turnCount  > 48):
+        self.intersectDetect = False
+        self.intersectStop = True
+      self.turnCount = self.turnCount + 1
+    elif(self.intersectStop):
+      self.move.linear.x = 0
+      self.move.angular.z = 0
+      self.image_pub.publish(self.move)
+      self.startsubtr = True
+      if(self.carDetected):
+        self.intersectStop = False
+        self.startsubtr = False
+        self.submarine = True
+        self.smalldel = True
+      if(not(self.loopdelay)):
+        self.loopdelay = True
+        self.recordCx = True
+      print("Intersection is detected detected detected detected detected detected")
+    elif(self.redLineDetected and not(self.reposition) and self.redlines % 2 == 0): ##changed
       if (cX7 > 445):
           self.move.linear.x = 0
           self.move.angular.z = -0.05
@@ -312,16 +446,16 @@ class image_converter:
       print("ohhhhhh yeahahahahaahahahha", cX7, "y:", cY7)
       if(cX < lthresh or cY > ythresh):
           self.move.linear.x = 0
-          self.move.angular.z = 1#0.5
+          self.move.angular.z = self.leftTurnspeed#1#0.5
           self.image_pub.publish(self.move)
           print("move left")
       elif(cX > rthresh):
           self.move.linear.x = 0
-          self.move.angular.z = -1#-0.5 #neg
+          self.move.angular.z = self.rightTurnspeed#-1#-0.5 #neg
           self.image_pub.publish(self.move)
           print("move right")
       else:
-          self.move.linear.x = 0.2#0.075
+          self.move.linear.x = self.forwardSpeed #0.2#0.075
           self.move.angular.z = 0
           self.image_pub.publish(self.move)
           print("forward")
@@ -330,7 +464,7 @@ class image_converter:
     #cv2.imshow("Image", new_imerg)
     #print(cYY, "The info you wnat", cXX, "yee",M2["m00"])
 
-    cv2.imshow("Image window", bin5)
+    cv2.imshow("Image window", final)#bin5)
     cv2.waitKey(3)
 
 ## The main function for running the image converter to robot movement
