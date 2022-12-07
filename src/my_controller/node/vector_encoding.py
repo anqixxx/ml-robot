@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
 import tensorflow as tf
+from tensorflow import keras
 
 from tensorflow.keras import layers
 from tensorflow.keras import models
@@ -80,6 +81,29 @@ def displayImage(index):
 
   print(one_hot_rev(int(y_predict. argmax())))
 
+def define_model():
+  # Model definition
+  conv_model = models.Sequential()
+  conv_model.add(layers.Conv2D(32, (3, 3), activation='relu',
+                              input_shape=(160, 100, 1)))
+  conv_model.add(layers.MaxPooling2D((2, 2)))
+  conv_model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+  conv_model.add(layers.MaxPooling2D((2, 2)))
+  conv_model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+  conv_model.add(layers.MaxPooling2D((2, 2)))
+  conv_model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+  conv_model.add(layers.MaxPooling2D((2, 2)))
+  conv_model.add(layers.Flatten())
+  conv_model.add(layers.Dropout(0.5))
+  conv_model.add(layers.Dense(512, activation='relu'))
+  conv_model.add(layers.Dense(36, activation='softmax')) # Amount of labels, ie. things we are trying to classify
+
+  conv_model.summary()
+  LEARNING_RATE = 1e-4 # How fast we are changing the gradient
+  conv_model.compile(loss='categorical_crossentropy',
+                    optimizer=optimizers.RMSprop(lr=LEARNING_RATE),
+                    metrics=['acc'])
+  # Metrics is like eval critera, in this case acc is accuracy, we want to track this
 
 NUMBER_OF_LABELS = 36
 dir_path = '/home/fizzer/ros_ws/src/my_controller/node/unlabelled/'
@@ -92,6 +116,7 @@ for path in os.scandir(dir_path):
         assert os.path.exists(file_name)
         # print(file_name)
         im = cv2.imread(file_name, 0)
+        im = cv2.GaussianBlur(im,(7,7),cv2.BORDER_DEFAULT)
         # plt.imshow(im, 'gray'),plt.show()
         # so we knowh the name of the plate
         # name is 11 letters long
@@ -150,9 +175,6 @@ for path in os.scandir(dir_path):
     
 
 # Genereate X and Y datasets
-# X_dataset_orig = np.array([data[0] for data in all_dataset[:]], dtype=np.float32)
-# Y_dataset_orig = np.array([[data[1]] for data in all_dataset], dtype=np.float32)
-# X_dataset_orig = np.array([data[0] for data in all_dataset[:]]).reshape(-1, 160, 100, 1)
 X_dataset_orig = np.array([data[0] for data in all_dataset[:]])
 Y_dataset_orig = np.array([[data[1]] for data in all_dataset])
 
@@ -160,11 +182,9 @@ Y_dataset_orig = np.array([[data[1]] for data in all_dataset])
 
 # Normalize X (images) dataset
 X_dataset = (X_dataset_orig/255)
-plt.imshow(X_dataset_orig[6], 'gray'),plt.show()
+plt.imshow(X_dataset[6], 'gray'),plt.show()
 X_dataset = tf.expand_dims(X_dataset, axis=-1)
-# X_dataset = X_dataset.reshape([X_dataset.shape[0], [1]] + list(X_dataset.shape[1:]))
-# X_dataset = X_dataset.reshape(-1, 160, 100, 1)
-# Convert Y dataset to one-hot encoding
+
 Y_dataset = convert_to_one_hot(Y_dataset_orig, NUMBER_OF_LABELS).T
 # print(Y_dataset)
 # print(X_dataset)
