@@ -46,18 +46,6 @@ class image_converter:
         assert os.path.exists(file_name)
         self.location_model = keras.models.load_model(file_name)
 
-    def start_system(self):
-        self = image_converter()
-        self.pub.publish("team11, team11,0,0000")
-        start_time = time.time()
-        print("Timer started at {} for Team 11".format(time.time))
-        return start_time
-
-    def stop_system(self):
-        self.pub.publish("team11, team11,-1,0000")
-        print("Timer ended at {} for Team 11".format(time.time))
-        time.sleep(1)
-    
     def publish_plate(self, plate_name):
         self.pub.publish("team11, team11,"+plate_name[1]+','+plate_name[3:])
         print(plate_name)
@@ -82,12 +70,10 @@ class image_converter:
         return (self.plate_hot_rev(int(y_predict.argmax())))
 
     def location_hot_rev(self, index):
-        # List to allow mapping from character to row numbers
-        one_hot_map = "12345678"
+        one_hot_map = "12345678" # List to allow mapping from character to row numbers
         return one_hot_map[index]
 
-    # Finds location in data set
-    def find_location(self, img):
+    def find_location(self, img):     # Finds location in data set
         img_aug = np.expand_dims(img, axis=0)
         y_predict = self.location_model.predict(img_aug)[0]
         # print(y_predict)
@@ -127,8 +113,7 @@ class image_converter:
         index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
         search_params = dict(checks = 50)
         flann = cv2.FlannBasedMatcher(index_params, search_params)
-        matches = flann.knnMatch(des1,des2,k=2)
-        # store all the good matches as per Lowe's ratio test.
+        matches = flann.knnMatch(des1,des2,k=2)    # store all the good matches as per Lowe's ratio test.
         good = []
         # plt.imshow(img2, 'gray'),plt.show()
 

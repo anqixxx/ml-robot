@@ -67,7 +67,7 @@ for path in os.scandir(dir_path):
         assert os.path.exists(file_name)
 
         im = cv2.imread(file_name, 0)
-        im = cv2.GaussianBlur(im,(7,7),cv2.BORDER_DEFAULT)
+        im = cv2.GaussianBlur(im, (11, 11), 0)
         ret,im = cv2.threshold(im,127,255,cv2.THRESH_BINARY)
         # plt.imshow(im, 'gray'),plt.show()
 
