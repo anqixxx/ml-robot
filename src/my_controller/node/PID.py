@@ -17,6 +17,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
+import time
 
 ## Image converter to robot movement for line following
 #

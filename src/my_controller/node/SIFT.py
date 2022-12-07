@@ -49,7 +49,7 @@ class image_converter:
     def start_system(self):
         self = image_converter()
         self.pub.publish("team11, team11,0,0000")
-        start_time = time.time
+        start_time = time.time()
         print("Timer started at {} for Team 11".format(time.time))
         return start_time
 
@@ -59,7 +59,7 @@ class image_converter:
         time.sleep(1)
     
     def publish_plate(self, plate_name):
-        self.pub.publish("team11, team11,"+plate_name[1]+plate_name[3:])
+        self.pub.publish("team11, team11,"+plate_name[1]+','+plate_name[3:])
         print(plate_name)
         time.sleep(1)
 
@@ -73,7 +73,7 @@ class image_converter:
         img_aug = np.expand_dims(img, axis=0)
         y_predict = self.plate_model.predict(img_aug)[0]
         if (type == 'a'):
-            y_predict[26:]= [0 for y_val in y_predict[26:]] # Set 1234567890 to none
+            y_predict[26:]= [0 for y_val in y_predict[26:]] # Set 1234567890 to zero
         if (type == 'n'):
             y_predict[0:25]= [0 for y_val in y_predict[0:25]] # Set ABCDEFGHIJKLMNOPQRSTUVWXYZ to zero
         # print(y_predict)
@@ -95,13 +95,21 @@ class image_converter:
             return -1
         return (self.location_hot_rev(int(y_predict.argmax())))
     
+    def initalize_sift(self):
+        print("here")
+        file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
+        assert os.path.exists(file_name1)
+        img1 = cv2.imread(file_name1, 0)          # queryImage
+
+
     def callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
         
-        MIN_MATCH_COUNT = 12
+        MIN_MATCH_COUNT = 20
+        #12
         # 22 seems to always hold, but however we may not be able to always see 22 points
         file_name1 = os.path.join(os.path.dirname(__file__), 'p_image.jpg')
         assert os.path.exists(file_name1)
@@ -173,9 +181,9 @@ class image_converter:
             plate_4 = img3[660:744, 698:811]
             plate_4 = cv2.resize(plate_4, (100,160))
             plate_name += str(self.find_plate(tf.expand_dims(plate_4, axis=-1), type='n'))
-            
+            # self.publish_plate(plate_name)
             if '-1' not in plate_name:
-                self.publish_plate(self, plate_name)
+                self.publish_plate(plate_name)
             else:
                 print(plate_name)
 
@@ -188,17 +196,14 @@ class image_converter:
 def main(args):
     rospy.init_node('image_converter', anonymous=True)
     self = image_converter()
-    start_time = self.start_system()
+    # start_time = self.start_system()
 
-    while (time.time-start_time < 240):
-        try:
-            rospy.spin()
-        except KeyboardInterrupt:
-            self.stop_system()
-            print("Shutting down")
-            cv2.destroyAllWindows()
-    self.stop_system()
-    
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        # self.stop_system()
+        print("Shutting down")
+        cv2.destroyAllWindows()
 
 # Run main function when invoked
 if __name__ == '__main__':

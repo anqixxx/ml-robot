@@ -17,34 +17,10 @@ pub = rospy.Publisher("license_plate", String, queue_size=1)
 time.sleep(1)
 
 pub.publish("team11, team11,0,0000")
-print("Timer started at {} for Team 11".format(time.time))
-time.sleep(240)
+print("Timer started at {} for Team 11".format(rospy.get_rostime()))
+rospy.sleep(239)
 
 pub.publish("team11, team11,-1,0000")
-print("Timer ended at {} for Team 11".format(time.time))
+print("Timer ended at {} for Team 11".format(rospy.get_rostime()))
 time.sleep(1)
-
-
-# class license_plate:   
-#    def __init__(self):
-#       # All are objects
-#       self.license_pub = rospy.Publisher("license_plate", String, queue_size=1)
-
-# def main(args):
-#    rospy.init_node('license_plate', anonymous= True)
-#    lp = license_plate()
-#    lp.license_pub.publish('team11,team11,0,0000')
-#    rate = rospy.Rate(2)
-#    rate.sleep()
-
-#    try:
-#       rospy.spin()
-#    except KeyboardInterrupt:
-#       print("Shutting down")
-#       lp.license_pub.publish('team11,team11,-1,0000')
-#       rate.sleep()
-#    cv2.destroyAllWindows()
-
-# if __name__ == '__main__':
-#     main(sys.argv)
 
