@@ -92,8 +92,6 @@ class image_converter:
       print(e)
 
 
-
-
     # Image cleaning pipeline: Grayscale, gaussian blur image, convert to a binary map
     redLineDetected = False
     pedestDetected = False
@@ -101,6 +99,7 @@ class image_converter:
     gblur = cv2.GaussianBlur(gray, (5,5), 0)
     ret,binary = cv2.threshold(gblur,75,255, cv2.THRESH_BINARY)
 
+    # Delays for stops and starts for the first two cars to judge strenght of SIFT
     if(self.stop1pl):
       self.firstStopc = self.firstStopc + 1
       #print(self.firstStopc)
@@ -115,7 +114,7 @@ class image_converter:
       stop2 = True
 
 
-#Start Comment
+    # Gray Path variable cropping from COM measurement
     ret,binary235 = cv2.threshold(gblur,200,255, cv2.THRESH_BINARY)
     M = cv2.moments(binary)
     cX = int(M["m10"]/M["m00"])
@@ -124,18 +123,19 @@ class image_converter:
     newim = gblur[(cY):,:]
     newerim = newim[int(newim.shape[0]/2):, :]
 
-
+    # Gray Path Binarization and COM
     ret,bin3 = cv2.threshold(newim,85,255, cv2.THRESH_BINARY_INV)
     ret,bin4 = cv2.threshold(newim,80,255, cv2.THRESH_BINARY_INV)
     bin5 = cv2.subtract(bin3,bin4)
     M = cv2.moments(bin5)
-
     cX = int(M["m10"]/M["m00"])
     cY = int(M["m01"]/M["m00"]) + Cy1
 
+    # Temporary COM shifting to avoid collision towards end of course
     if(self.eightCount > 262 and self.eightCount < 290):
       cX = cX-125
-
+   
+    # Red Line Binarization and COM
     ret,bin9 = cv2.threshold(newerim,31,255, cv2.THRESH_BINARY_INV)
     ret,bin10 = cv2.threshold(newerim,28,255, cv2.THRESH_BINARY_INV)
     bin11 = cv2.subtract(bin9,bin10)
@@ -144,14 +144,15 @@ class image_converter:
     cXX = 0
     cYY = 0
 
+    # Sky Binarization and COM
     ret,bin37 = cv2.threshold(gblur,180,255, cv2.THRESH_BINARY_INV)#120
     ret,bin47 = cv2.threshold(gblur,120,255, cv2.THRESH_BINARY_INV)
     bin57 = cv2.subtract(bin37,bin47)
     M7 = cv2.moments(bin57)
-    
     cX7 = int(M7["m10"]/M7["m00"])
     cY7 = int(M7["m01"]/M7["m00"])
 
+    # Delay Counters
     if (self.startdelay):
       if (self.delay2 < 500):
         self.delay2 = self.delay2 + 1
@@ -174,13 +175,15 @@ class image_converter:
       if(self.recordCx):
         self.Cy = Cy1
         self.recordCx = False
+      # End of Delay Counters
       
-      
+      # Cropping and Thresholding for Car Detection Subtraction Images
       intersectim1 = gblur[(self.Cy):,:]
       ret,bin357 = cv2.threshold(intersectim1,85,255, cv2.THRESH_BINARY_INV)
       ret,bin479 = cv2.threshold(intersectim1,80,255, cv2.THRESH_BINARY_INV)
       bin523 = cv2.subtract(bin357,bin479)
 
+      # Inner Loop Car Detection
       if(type(self.secimerg) == int):
           self.secimerg = bin523
           self.captureCount2 = self.captureCount2 + 1
@@ -193,7 +196,7 @@ class image_converter:
           self.carDetected = True
 
 
-
+    # Red Line Detection
     if(M2["m00"] != 0):
       cXX = int(M2["m10"]/M2["m00"])
       cYY = int(M2["m01"]/M2["m00"]) + Cy1 + int(newim.shape[0]/2)
@@ -203,7 +206,8 @@ class image_converter:
         if(self.recordCx):
           self.recordCx = False
           self.Cx = cX
-    
+          
+    # Pedestrian Detection
     if(self.redLineDetected and not(self.pedestDetected)): ##changed
       imerg = gblur[320:550,self.Cx-125:self.Cx+125]
       if(type(self.preimerg) == int):
@@ -220,6 +224,7 @@ class image_converter:
         if(self.reposition and self.captureCount > 4 and M3["m00"]>100000 and not(self.twocross)):
           self.pedestDetected = True
     
+    # Delay Counter Section
     if(self.twocross):
       self.redLineDetected = False
 
@@ -243,13 +248,15 @@ class image_converter:
         self.finalIntersect = True
         self.eightCount = 0
     
-
     if(self.smalldel):
       self.smalldelay = self.smalldelay + 1
 
     if(self.smalldelay > 12):
       self.smalldel = False
 
+    # End of Delay Counter Section
+      
+    # For visualization of COM's      
     final1 = cv2.circle(cv_image,(cXX,cYY),15,(255,0,0),cv2.FILLED)
     final = cv2.circle(final1,(self.Cx,cY),15,(255,0,0),cv2.FILLED)
     if(self.startsubtr):
@@ -266,6 +273,7 @@ class image_converter:
     rthresh = 680
     ythresh = 650#700
 
+    # Modes of Operation, the first three modes were optional nodes for brief stops near the first two cars
     if(stop1):
       self.move.linear.x = 0
       self.move.angular.z = -0.2
