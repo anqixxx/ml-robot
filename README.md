@@ -15,4 +15,5 @@ An autonomous parking agent that can fully navigate a simulated enviroment whils
 
 
 All additional helper functions in helper nodes were used to ensure proper code decomposition and reuse
+
 **Please note that all commits past competition date were made for documentation purposes. Except for the addition of comments, all code was unchanged.**
