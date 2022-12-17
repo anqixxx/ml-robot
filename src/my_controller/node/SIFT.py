@@ -121,9 +121,6 @@ def main(args):
         if path.is_file():
           file_name2 = os.path.join(os.path.dirname(dir_path), path)
           assert os.path.exists(file_name2)
-          # print(file_name2)
-          # print(os.path.dirname(path))
-          # print('here')
           img2 = cv2.imread(file_name2, 0)      # trainImage, ONLY FOR TESTING
           img3 = None
           # plt.imshow(img1, 'gray'),plt.show()
@@ -166,40 +163,29 @@ def main(args):
               plate_name = 'P'
 
               # Find location
-              # location = img3[564:368, 848:535]
               location = img3[369:522, 569:840]
               location = cv2.resize(location, (220,302))
-              # plt.imshow(location, 'gray'),plt.show()
               plate_name += str(self.find_location(tf.expand_dims(location, axis=-1)))
               plate_name += '_'
               
               # Find plate
-              # plate_1 = img3.crop((247, 661, 362, 747))
-              # y from math
               plate_1 = img3[660:744, 250:362]
               plate_1 = cv2.resize(plate_1, (100,160))
-              # plt.imshow(plate_1, 'gray'),plt.show()
               plate_name += str(self.find_plate(tf.expand_dims(plate_1, axis=-1), type='a'))
 
-
-              # plate_2 = img3.crop((326, 661, 478, 747))
               plate_2 = img3[660:744, 362:475]
               plate_2 = cv2.resize(plate_2, (100,160))
-              # plt.imshow(plate_2, 'gray'),plt.show()
               plate_name += str(self.find_plate(tf.expand_dims(plate_2, axis=-1), type='a'))
 
-              # plate_3 = img3.crop((590, 661, 701, 747))
               plate_3 = img3[660:744, 586:698]
               plate_3 = cv2.resize(plate_3, (100,160))
-              # plt.imshow(plate_3, 'gray'),plt.show()
               plate_name += str(self.find_plate(tf.expand_dims(plate_3, axis=-1), type='n'))
 
-              # plate_4 = img3.crop((701, 661, 817, 747))
               plate_4 = img3[660:744, 698:811]
               plate_4 = cv2.resize(plate_4, (100,160))
               plate_name += str(self.find_plate(tf.expand_dims(plate_4, axis=-1), type='n'))
-              # self.publish_plate(plate_name)
-              if '-1' not in plate_name:
+
+                if '-1' not in plate_name:
                   self.publish_plate(plate_name)
               else:
                   print(plate_name)
