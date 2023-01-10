@@ -1,6 +1,4 @@
-# enph353
-Team 11
-
+# Autonomous Machine Learning Parking Agent
 An autonomous parking agent that can fully navigate a simulated enviroment whilst detecting and reporting liscense plates, a project created for ENPH353
 
 | Source File  |Description |
@@ -16,4 +14,7 @@ An autonomous parking agent that can fully navigate a simulated enviroment whils
 
 All additional helper functions in helper nodes were used to ensure proper code decomposition and reuse
 
-**Please note that all commits past competition date were made for documentation purposes. Except for the addition of comments, all code was unchanged.**
+![image](https://user-images.githubusercontent.com/74876670/211437300-307e65d0-2d4a-43e8-ae21-3034172d8305.png)
+
+<sup> This repository was created for ENPH353, a competition based course that involves engineering project planning, execution and reporting. The course involves carrying out an open-ended Engineering project to meet specific performance metrics on an industry relevant topic selected by instructors. Reporting on progress is both oral and written. </sub>
+
