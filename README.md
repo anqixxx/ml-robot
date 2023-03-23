@@ -18,3 +18,5 @@ All additional helper functions in helper nodes were used to ensure proper code 
 
 <sup> This repository was created for ENPH353, a competition based course that involves engineering project planning, execution and reporting. The course involves carrying out an open-ended Engineering project to meet specific performance metrics on an industry relevant topic selected by instructors. Reporting on progress is both oral and written. </sub>
 
+Additional files of the robot moving and files related to the robot are avaliable on request
+
